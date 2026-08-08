@@ -33,10 +33,39 @@ export const Route = createFileRoute("/prestador/$id")({
 function ProviderPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const provider = useQuery(providerQuery(id));
   const reviews = useQuery(providerReviewsQuery(id));
   const services = useQuery(providerServicesQuery(id));
   const categories = useQuery(categoriesQuery);
+
+  const favorite = useQuery({
+    queryKey: ["favorite", id, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("favorites").select("id").eq("provider_id", id).maybeSingle();
+      return data;
+    },
+  });
+
+  async function toggleFavorite() {
+    if (!user) {
+      toast.info("Entre na sua conta para salvar favoritos.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    if (favorite.data) {
+      await supabase.from("favorites").delete().eq("id", favorite.data.id);
+      toast.success("Removido dos favoritos.");
+    } else {
+      await supabase.from("favorites").insert({ user_id: user.id, provider_id: id });
+      toast.success("Salvo nos favoritos!");
+    }
+    queryClient.invalidateQueries({ queryKey: ["favorite", id] });
+    queryClient.invalidateQueries({ queryKey: ["favorites"] });
+  }
+
 
   if (provider.isLoading) {
     return (
