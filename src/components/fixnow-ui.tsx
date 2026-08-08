@@ -33,8 +33,8 @@ export function CategoryTile({ category }: { category: Category }) {
 export function ServiceCard({ service, category }: { service: Service; category?: Category }) {
   return (
     <Link
-      to="/solicitar/$slug"
-      params={{ slug: service.slug }}
+      to="/solicitar"
+      search={{ service: service.slug }}
       className="press flex min-w-[220px] flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]"
     >
       <div className="flex items-start gap-3">
@@ -110,7 +110,7 @@ export function ProviderCard({ provider, categoryName }: { provider: Provider; c
             Ver perfil
           </Button>
         </Link>
-        <Link to="/solicitar/$slug" params={{ slug: "pedido" }} search={{ provider: provider.id }}>
+        <Link to="/solicitar" search={{ provider: provider.id }}>
           <Button className="w-full font-bold">Solicitar</Button>
         </Link>
       </div>
