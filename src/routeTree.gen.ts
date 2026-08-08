@@ -10,12 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
+import { Route as SolicitarRouteImport } from './routes/solicitar'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
+import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuscarRoute = BuscarRouteImport.update({
@@ -23,40 +31,81 @@ const BuscarRoute = BuscarRouteImport.update({
   path: '/buscar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolicitarRoute = SolicitarRouteImport.update({
+  id: '/solicitar',
+  path: '/solicitar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriaSlugRoute = CategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrestadorIdRoute = PrestadorIdRouteImport.update({
+  id: '/prestador/$id',
+  path: '/prestador/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
+  '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
+  '/prestador/$id': typeof PrestadorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
+  '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
+  '/prestador/$id': typeof PrestadorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
+  '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
+  '/prestador/$id': typeof PrestadorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/buscar' | '/categoria/$slug'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/buscar'
+    | '/solicitar'
+    | '/categoria/$slug'
+    | '/prestador/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/buscar' | '/categoria/$slug'
-  id: '__root__' | '/' | '/buscar' | '/categoria/$slug'
+  to:
+    | '/'
+    | '/auth'
+    | '/buscar'
+    | '/solicitar'
+    | '/categoria/$slug'
+    | '/prestador/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/buscar'
+    | '/solicitar'
+    | '/categoria/$slug'
+    | '/prestador/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   BuscarRoute: typeof BuscarRoute
+  SolicitarRoute: typeof SolicitarRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
+  PrestadorIdRoute: typeof PrestadorIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +117,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/buscar': {
       id: '/buscar'
       path: '/buscar'
       fullPath: '/buscar'
       preLoaderRoute: typeof BuscarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solicitar': {
+      id: '/solicitar'
+      path: '/solicitar'
+      fullPath: '/solicitar'
+      preLoaderRoute: typeof SolicitarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categoria/$slug': {
@@ -82,13 +145,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prestador/$id': {
+      id: '/prestador/$id'
+      path: '/prestador/$id'
+      fullPath: '/prestador/$id'
+      preLoaderRoute: typeof PrestadorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   BuscarRoute: BuscarRoute,
+  SolicitarRoute: SolicitarRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
+  PrestadorIdRoute: PrestadorIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
