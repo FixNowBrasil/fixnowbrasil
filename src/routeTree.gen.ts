@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as SolicitarRouteImport } from './routes/solicitar'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
+import { Route as AuthenticatedPedidosIndexRouteImport } from './routes/_authenticated/pedidos.index'
+import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -46,6 +53,17 @@ const PrestadorIdRoute = PrestadorIdRouteImport.update({
   path: '/prestador/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPedidosIndexRoute =
+  AuthenticatedPedidosIndexRouteImport.update({
+    id: '/pedidos/',
+    path: '/pedidos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
+  id: '/pedidos/$id',
+  path: '/pedidos/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +72,8 @@ export interface FileRoutesByFullPath {
   '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
+  '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedidos/': typeof AuthenticatedPedidosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,15 +82,20 @@ export interface FileRoutesByTo {
   '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
+  '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/pedidos': typeof AuthenticatedPedidosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
+  '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/_authenticated/pedidos/': typeof AuthenticatedPedidosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +106,8 @@ export interface FileRouteTypes {
     | '/solicitar'
     | '/categoria/$slug'
     | '/prestador/$id'
+    | '/pedidos/$id'
+    | '/pedidos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,18 +116,24 @@ export interface FileRouteTypes {
     | '/solicitar'
     | '/categoria/$slug'
     | '/prestador/$id'
+    | '/pedidos/$id'
+    | '/pedidos'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/auth'
     | '/buscar'
     | '/solicitar'
     | '/categoria/$slug'
     | '/prestador/$id'
+    | '/_authenticated/pedidos/$id'
+    | '/_authenticated/pedidos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BuscarRoute: typeof BuscarRoute
   SolicitarRoute: typeof SolicitarRoute
@@ -115,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -152,11 +192,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrestadorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/pedidos/': {
+      id: '/_authenticated/pedidos/'
+      path: '/pedidos'
+      fullPath: '/pedidos/'
+      preLoaderRoute: typeof AuthenticatedPedidosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pedidos/$id': {
+      id: '/_authenticated/pedidos/$id'
+      path: '/pedidos/$id'
+      fullPath: '/pedidos/$id'
+      preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRoute
+  AuthenticatedPedidosIndexRoute: typeof AuthenticatedPedidosIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRoute,
+  AuthenticatedPedidosIndexRoute: AuthenticatedPedidosIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BuscarRoute: BuscarRoute,
   SolicitarRoute: SolicitarRoute,
