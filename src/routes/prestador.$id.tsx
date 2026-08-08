@@ -147,7 +147,7 @@ function ProviderPage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2 sm:grid-cols-[2fr_1fr]">
+          <div className="mt-5 grid gap-2 sm:grid-cols-[2fr_1fr_auto]">
             <Button
               size="lg"
               className="font-extrabold"
@@ -164,7 +164,17 @@ function ProviderPage() {
               <MessageCircle className="h-4 w-4" />
               Enviar mensagem
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="font-bold"
+              aria-label="Favoritar profissional"
+              onClick={toggleFavorite}
+            >
+              <Heart className={favorite.data ? "h-5 w-5 fill-primary text-primary" : "h-5 w-5"} />
+            </Button>
           </div>
+
         </header>
 
         <section className="surface-card p-5">
