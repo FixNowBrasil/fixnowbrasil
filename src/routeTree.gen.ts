@@ -14,6 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as SolicitarRouteImport } from './routes/solicitar'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated/favoritos'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as AuthenticatedPedidosIndexRouteImport } from './routes/_authenticated/pedidos.index'
@@ -43,6 +47,26 @@ const SolicitarRoute = SolicitarRouteImport.update({
   path: '/solicitar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const CategoriaSlugRoute = CategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
@@ -70,6 +94,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
@@ -80,6 +108,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/painel': typeof AuthenticatedPainelRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
@@ -92,6 +124,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
@@ -104,6 +140,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/buscar'
     | '/solicitar'
+    | '/admin'
+    | '/favoritos'
+    | '/painel'
+    | '/perfil'
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/pedidos/$id'
@@ -114,6 +154,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/buscar'
     | '/solicitar'
+    | '/admin'
+    | '/favoritos'
+    | '/painel'
+    | '/perfil'
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/pedidos/$id'
@@ -125,6 +169,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/buscar'
     | '/solicitar'
+    | '/_authenticated/admin'
+    | '/_authenticated/favoritos'
+    | '/_authenticated/painel'
+    | '/_authenticated/perfil'
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/_authenticated/pedidos/$id'
@@ -178,6 +226,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolicitarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/favoritos': {
+      id: '/_authenticated/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/categoria/$slug': {
       id: '/categoria/$slug'
       path: '/categoria/$slug'
@@ -210,11 +286,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRoute
   AuthenticatedPedidosIndexRoute: typeof AuthenticatedPedidosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRoute,
   AuthenticatedPedidosIndexRoute: AuthenticatedPedidosIndexRoute,
 }
