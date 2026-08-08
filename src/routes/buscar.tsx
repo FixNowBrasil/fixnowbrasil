@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, CategoryTile, EmptyState, ProviderCard, ServiceCard } from "@/components/fixnow-ui";
 import { allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
 
-type SearchParams = { q?: string };
+type SearchParams = { q?: string | undefined };
 
 export const Route = createFileRoute("/buscar")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({

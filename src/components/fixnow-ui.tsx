@@ -30,7 +30,7 @@ export function CategoryTile({ category }: { category: Category }) {
   );
 }
 
-export function ServiceCard({ service, category }: { service: Service; category?: Category }) {
+export function ServiceCard({ service, category }: { service: Service; category?: Category | undefined }) {
   return (
     <Link
       to="/solicitar"
@@ -51,7 +51,7 @@ export function ServiceCard({ service, category }: { service: Service; category?
   );
 }
 
-export function ProviderCard({ provider, categoryName }: { provider: Provider; categoryName?: string }) {
+export function ProviderCard({ provider, categoryName }: { provider: Provider; categoryName?: string | undefined }) {
   return (
     <article className="surface-card press flex flex-col gap-4 p-4 sm:p-5">
       <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
