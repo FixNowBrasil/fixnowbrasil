@@ -55,7 +55,10 @@ function AuthPage() {
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
-      if (error) return toast.error("E-mail ou senha inválidos.");
+      if (error) {
+        toast.error("E-mail ou senha inválidos.");
+        return;
+      }
       toast.success("Bem-vindo de volta!");
       navigate({ to: "/" });
     } else {
@@ -68,7 +71,10 @@ function AuthPage() {
         },
       });
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       if (!data.session) {
         toast.success("Conta criada! Confirme seu e-mail para entrar.");
         setMode("login");
