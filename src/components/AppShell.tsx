@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase, ArrowLeftRight } from "lucide-react";
+import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase, ArrowLeftRight, CalendarDays } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const hasProviderProfile = !!providerProfile.data;
-  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador");
+  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda");
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -85,13 +85,22 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
             {isProvider && (
-              <Link
-                to="/painel"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-              >
-                <Briefcase className="mr-1 inline h-4 w-4" />
-                Painel
-              </Link>
+              <>
+                <Link
+                  to="/painel"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+                >
+                  <Briefcase className="mr-1 inline h-4 w-4" />
+                  Painel
+                </Link>
+                <Link
+                  to="/agenda"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+                >
+                  <CalendarDays className="mr-1 inline h-4 w-4" />
+                  Agenda
+                </Link>
+              </>
             )}
             {isAdmin && (
               <Link
