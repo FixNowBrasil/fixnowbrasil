@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
+import { QuotePanel, RequestChat } from "@/components/request-extras";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
@@ -54,6 +55,22 @@ function PedidoPage() {
       return data;
     },
   });
+
+  const myProvider = useQuery({
+    queryKey: ["my-provider", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("providers")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+
 
   const advance = useMutation({
     mutationFn: async (status: string) => {
@@ -128,6 +145,7 @@ function PedidoPage() {
 
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const next = NEXT[req.status];
+  const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
 
   return (
     <AppShell>
@@ -165,6 +183,16 @@ function PedidoPage() {
             </div>
           </dl>
         </header>
+
+        <QuotePanel
+          requestId={req.id}
+          providerId={myProvider.data?.id ?? null}
+          role={isRequestProvider ? "provider" : "client"}
+        />
+
+        {user && <RequestChat requestId={req.id} meId={user.id} />}
+
+
 
         <section className="surface-card p-5">
           <h2 className="mb-4 font-display text-base font-bold">Acompanhamento</h2>
