@@ -29,14 +29,6 @@ export const Route = createFileRoute("/_authenticated/pedidos/$id")({
   component: PedidoPage,
 });
 
-const NEXT: Record<string, string> = {
-  sent: "analyzing",
-  analyzing: "confirmed",
-  confirmed: "on_the_way",
-  on_the_way: "in_progress",
-  in_progress: "completed",
-};
-
 function PedidoPage() {
   const { id } = Route.useParams();
   const { user } = useAuth();
@@ -74,29 +66,17 @@ function PedidoPage() {
     },
   });
 
-  const advance = useMutation({
-    mutationFn: async (status: string) => {
-      const { error } = await supabase
-        .from("service_requests")
-        .update({ status: status as never, updated_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["request", id] });
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
-    },
-    onError: () => toast.error("Não foi possível atualizar o status."),
-  });
-
   const sendReview = useMutation({
     mutationFn: async () => {
       const req = request.data as unknown as ServiceRequest;
+      if (!req.provider_id || req.client_id !== user?.id || req.status !== "completed") {
+        throw new Error("avaliação inválida");
+      }
       const { error } = await supabase.from("reviews").insert({
-        provider_id: req.provider_id!,
+        provider_id: req.provider_id,
         request_id: req.id,
-        client_id: user!.id,
-        author_name: user!.email?.split("@")[0] ?? "Cliente FixNow",
+        client_id: user.id,
+        author_name: user.email?.split("@")[0] ?? "Cliente FixNow",
         rating,
         punctuality,
         quality,
@@ -106,8 +86,10 @@ function PedidoPage() {
       if (error) throw error;
       const { error: e2 } = await supabase
         .from("service_requests")
-        .update({ status: "rated" as never })
-        .eq("id", id);
+        .update({ status: "rated" as never, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("client_id", user.id)
+        .eq("status", "completed");
       if (e2) throw e2;
     },
     onSuccess: () => {
@@ -115,7 +97,9 @@ function PedidoPage() {
       queryClient.invalidateQueries({ queryKey: ["request", id] });
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
     },
-    onError: () => toast.error("Não foi possível enviar sua avaliação."),
+    onError: (error) => {
+      toast.error(error.message === "avaliação inválida" ? "A avaliação só pode ser enviada após o serviço." : "Não foi possível enviar sua avaliação.");
+    },
   });
 
   if (request.isLoading) {
@@ -155,7 +139,6 @@ function PedidoPage() {
   }
 
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
-  const next = NEXT[req.status];
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
   const isRequestClient = !!user?.id && user.id === req.client_id;
   const canSchedule =
@@ -256,19 +239,12 @@ function PedidoPage() {
               );
             })}
           </ol>
-          {next && (
-            <Button
-              variant="outline"
-              className="w-full font-bold"
-              disabled={advance.isPending}
-              onClick={() => advance.mutate(next)}
-            >
-              Simular próximo status (demo)
-            </Button>
-          )}
+          <p className="text-xs font-medium text-muted-foreground">
+            As mudanças de status são feitas pelo fluxo de cliente/prestador e validadas pelo banco de dados.
+          </p>
         </section>
 
-        {req.status === "completed" && (
+        {req.status === "completed" && isRequestClient && (
           <section className="surface-card space-y-4 p-5">
             <h2 className="font-display text-base font-bold">Como foi seu atendimento?</h2>
             <StarPicker label="Nota geral" value={rating} onChange={setRating} />
