@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          city: string
+          complement: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          neighborhood: string | null
+          number: string | null
+          state: string | null
+          street: string
+          updated_at: string
+          user_id: string
+          zip: string | null
+        }
+        Insert: {
+          city?: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          neighborhood?: string | null
+          number?: string | null
+          state?: string | null
+          street?: string
+          updated_at?: string
+          user_id: string
+          zip?: string | null
+        }
+        Update: {
+          city?: string
+          complement?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          neighborhood?: string | null
+          number?: string | null
+          state?: string | null
+          street?: string
+          updated_at?: string
+          user_id?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           description: string | null
@@ -73,10 +121,76 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          request_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          request_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          request_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
           avatar_url: string | null
+          blocked: boolean
           city: string | null
           created_at: string
           full_name: string
@@ -87,6 +201,7 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          blocked?: boolean
           city?: string | null
           created_at?: string
           full_name?: string
@@ -97,6 +212,7 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          blocked?: boolean
           city?: string | null
           created_at?: string
           full_name?: string
@@ -221,6 +337,57 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          amount: number
+          created_at: string
+          estimated_time: string | null
+          id: string
+          message: string | null
+          provider_id: string
+          request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          estimated_time?: string | null
+          id?: string
+          message?: string | null
+          provider_id: string
+          request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          estimated_time?: string | null
+          id?: string
+          message?: string | null
+          provider_id?: string
+          request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
             referencedColumns: ["id"]
           },
         ]
