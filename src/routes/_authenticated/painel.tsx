@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { REQUEST_STEPS, categoriesQuery, type ServiceRequest } from "@/lib/fixnow";
+import {
+  REQUEST_STEPS,
+  allServicesQuery,
+  brl,
+  categoriesQuery,
+  providerServicesQuery,
+  type ServiceRequest,
+} from "@/lib/fixnow";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -58,7 +66,10 @@ export function PainelPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const categories = useQuery(categoriesQuery);
+  const allServices = useQuery(allServicesQuery);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [serviceId, setServiceId] = useState("");
+  const [servicePrice, setServicePrice] = useState(80);
 
   const myProvider = useQuery({
     queryKey: ["my-provider-full", user?.id],
@@ -75,6 +86,11 @@ export function PainelPage() {
   });
 
   const p = myProvider.data;
+
+  const providerServices = useQuery({
+    ...providerServicesQuery(p?.id ?? ""),
+    enabled: !!p?.id,
+  });
 
   useEffect(() => {
     if (!p) return;
@@ -142,6 +158,63 @@ export function PainelPage() {
     onError: () => toast.error("Verifique os dados e tente novamente."),
   });
 
+  const addService = useMutation({
+    mutationFn: async () => {
+      if (!p?.id || !serviceId) throw new Error("serviço");
+      if (Number(servicePrice) <= 0) throw new Error("preço");
+      if ((providerServices.data ?? []).some((item) => item.service_id === serviceId)) {
+        throw new Error("duplicado");
+      }
+      const { error } = await supabase.from("provider_services").insert({
+        provider_id: p.id,
+        service_id: serviceId,
+        price_from: Number(servicePrice),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Serviço adicionado ao seu perfil.");
+      setServiceId("");
+      setServicePrice(80);
+      queryClient.invalidateQueries({ queryKey: ["provider-services", p?.id] });
+      queryClient.invalidateQueries({ queryKey: ["provider", p?.id] });
+    },
+    onError: (error) => {
+      if (error.message === "duplicado") {
+        toast.error("Esse serviço já está no seu perfil.");
+      } else {
+        toast.error("Não foi possível adicionar o serviço.");
+      }
+    },
+  });
+
+  const removeService = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("provider_services").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Serviço removido.");
+      queryClient.invalidateQueries({ queryKey: ["provider-services", p?.id] });
+      queryClient.invalidateQueries({ queryKey: ["provider", p?.id] });
+    },
+    onError: () => toast.error("Não foi possível remover o serviço."),
+  });
+
+  const updateServicePrice = useMutation({
+    mutationFn: async ({ id, price }: { id: string; price: number }) => {
+      if (price <= 0) throw new Error("preço");
+      const { error } = await supabase.from("provider_services").update({ price_from: price }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Preço atualizado.");
+      queryClient.invalidateQueries({ queryKey: ["provider-services", p?.id] });
+      queryClient.invalidateQueries({ queryKey: ["provider", p?.id] });
+    },
+    onError: () => toast.error("Informe um preço válido."),
+  });
+
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
@@ -155,6 +228,9 @@ export function PainelPage() {
   });
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  const selectedServiceIds = new Set((providerServices.data ?? []).map((item) => item.service_id));
+  const availableServices = (allServices.data ?? []).filter((service) => !selectedServiceIds.has(service.id));
 
   return (
     <AppShell>
@@ -311,6 +387,109 @@ export function PainelPage() {
                 {save.isPending ? "Salvando..." : p ? "Salvar alterações" : "Criar perfil profissional"}
               </Button>
             </section>
+
+            {p && (
+              <section className="surface-card space-y-4 p-5">
+                <div>
+                  <h2 className="font-display text-base font-bold">Meus serviços</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Escolha os serviços que você realmente oferece e defina o preço inicial de cada um.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-[1fr_150px_auto] sm:items-end">
+                  <Field label="Adicionar serviço" id="provider-service">
+                    <select
+                      id="provider-service"
+                      value={serviceId}
+                      onChange={(e) => setServiceId(e.target.value)}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      disabled={allServices.isLoading || availableServices.length === 0}
+                    >
+                      <option value="">Selecione um serviço...</option>
+                      {availableServices.map((service) => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Preço inicial (R$)" id="provider-service-price">
+                    <Input
+                      id="provider-service-price"
+                      type="number"
+                      min={1}
+                      value={servicePrice}
+                      onChange={(e) => setServicePrice(Number(e.target.value))}
+                    />
+                  </Field>
+                  <Button
+                    type="button"
+                    className="font-bold"
+                    disabled={!serviceId || addService.isPending}
+                    onClick={() => addService.mutate()}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar
+                  </Button>
+                </div>
+
+                {providerServices.isLoading ? (
+                  <div className="h-20 animate-pulse rounded-xl bg-muted" />
+                ) : (providerServices.data ?? []).length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border p-5 text-center">
+                    <p className="text-sm font-semibold">Você ainda não adicionou serviços.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Adicione pelo menos um serviço para que os clientes saibam o que você oferece.
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {(providerServices.data ?? []).map((item) => (
+                      <li key={item.id} className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold">{item.services?.name ?? "Serviço"}</p>
+                          {item.services?.description && (
+                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{item.services.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-muted-foreground">A partir de R$</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            defaultValue={Number(item.price_from)}
+                            className="w-28"
+                            aria-label={`Preço de ${item.services?.name ?? "serviço"}`}
+                            onBlur={(e) => {
+                              const price = Number(e.target.value);
+                              if (price !== Number(item.price_from)) {
+                                updateServicePrice.mutate({ id: item.id, price });
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            aria-label={`Remover ${item.services?.name ?? "serviço"}`}
+                            disabled={removeService.isPending}
+                            onClick={() => removeService.mutate(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {!allServices.isLoading && availableServices.length === 0 && (providerServices.data ?? []).length > 0 && (
+                  <p className="text-xs font-medium text-muted-foreground">Você já adicionou todos os serviços disponíveis.</p>
+                )}
+              </section>
+            )}
 
             {p && (
               <section className="surface-card p-5">
