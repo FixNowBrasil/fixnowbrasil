@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "fix/**", "feat/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint changed TypeScript files
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.ts' '*.tsx')
+          else
+            files=$(git diff --name-only HEAD^ HEAD -- '*.ts' '*.tsx' 2>/dev/null || true)
+          fi
+
+          if [ -z "$files" ]; then
+            echo "No changed TypeScript files to lint."
+            exit 0
+          fi
+
+          echo "$files"
+          printf '%s\n' "$files" | xargs npx eslint
+
+      - name: Build
+        run: npm run build
