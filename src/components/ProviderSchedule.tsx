@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CalendarDays, Plus, Save, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -48,10 +48,11 @@ export function ProviderSchedule() {
   const { data: provider, isLoading } = useQuery({
     queryKey: ["my-provider-schedule"],
     queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("providers")
         .select("id, availability")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+        .eq("user_id", userData.user?.id ?? "")
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -224,7 +225,7 @@ export function ProviderSchedule() {
   );
 }
 
-function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+function Field({ label, id, children }: { label: string; id: string; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
