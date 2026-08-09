@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { uploadPhoto } from "@/lib/photo-upload";
+import { uploadProviderPhoto } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ProviderPhotoGallery({ providerId, userId, photos }: { providerId: string; userId: string; photos: string[] }) {
@@ -16,7 +16,7 @@ export function ProviderPhotoGallery({ providerId, userId, photos }: { providerI
     setBusy(true);
     try {
       const urls: string[] = [];
-      for (const file of Array.from(files)) urls.push(await uploadPhoto(file, "provider-work-photos", userId, providerId));
+      for (const file of Array.from(files)) urls.push(await uploadProviderPhoto(file, "provider-work-photos", userId, providerId));
       const next = [...items, ...urls];
       const { error } = await supabase.from("providers").update({ work_photos: next }).eq("id", providerId).eq("user_id", userId);
       if (error) throw error;
