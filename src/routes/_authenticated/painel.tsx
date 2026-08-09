@@ -251,8 +251,8 @@ export function PainelPage() {
   const set = <K extends keyof Form>(k: K, v: Form[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
   const selectedServiceIds = new Set((providerServices.data ?? []).map((item) => item.service_id));
-  const availableServices = (allServices.data ?? []).filter(
-    (service) => !selectedServiceIds.has(service.id),
+  const availableServices = (allServices.data ?? []).filter((service) =>
+    !selectedServiceIds.has(service.id),
   );
 
   return (
@@ -567,7 +567,7 @@ export function PainelPage() {
                             </p>
                             {r.scheduled_at && (
                               <p className="mt-1 text-xs font-semibold text-primary">
-                                Agendado: {" "}
+                                Agendado:{" "}
                                 {new Intl.DateTimeFormat("pt-BR", {
                                   dateStyle: "short",
                                   timeStyle: "short",
