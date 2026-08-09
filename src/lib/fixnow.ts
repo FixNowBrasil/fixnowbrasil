@@ -184,8 +184,7 @@ export const providerServicesQuery = (id: string) => ({
     const { data, error } = await supabase
       .from("provider_services")
       .select("id, service_id, price_from, services(id, name, slug, description)")
-      .eq("provider_id", id)
-      .order("created_at", { ascending: true });
+      .eq("provider_id", id);
     if (error) throw error;
     return data ?? [];
   },
