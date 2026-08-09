@@ -50,3 +50,29 @@ on public.service_requests (provider_id, scheduled_at)
 where provider_id is not null
   and scheduled_at is not null
   and status <> 'cancelled';
+
+-- Expose only occupied timestamps, not request/client data, so the client can
+-- hide already-booked slots without weakening service_requests RLS.
+create or replace function public.get_provider_booked_slots(
+  p_provider_id uuid,
+  p_from timestamptz,
+  p_to timestamptz
+)
+returns table (scheduled_at timestamptz)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select sr.scheduled_at
+  from public.service_requests sr
+  where sr.provider_id = p_provider_id
+    and sr.scheduled_at >= p_from
+    and sr.scheduled_at < p_to
+    and sr.status <> 'cancelled'
+  order by sr.scheduled_at;
+$$;
+
+revoke all on function public.get_provider_booked_slots(uuid, timestamptz, timestamptz) from public;
+revoke all on function public.get_provider_booked_slots(uuid, timestamptz, timestamptz) from anon;
+grant execute on function public.get_provider_booked_slots(uuid, timestamptz, timestamptz) to authenticated;
