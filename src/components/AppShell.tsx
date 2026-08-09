@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase, ArrowLeftRight, CalendarDays } from "lucide-react";
+import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase, ArrowLeftRight, CalendarDays, Images } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const hasProviderProfile = !!providerProfile.data;
-  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda");
+  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda") || pathname.startsWith("/fotos-prestador");
   const requestId = pathname.startsWith("/pedidos/") ? pathname.split("/")[2] : null;
 
   async function signOut() {
@@ -101,6 +101,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <CalendarDays className="mr-1 inline h-4 w-4" />
                   Agenda
+                </Link>
+                <Link
+                  to="/fotos-prestador"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+                >
+                  <Images className="mr-1 inline h-4 w-4" />
+                  Fotos
                 </Link>
               </>
             )}
