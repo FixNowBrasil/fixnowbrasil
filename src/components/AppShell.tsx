@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { RequestPhotoSlot } from "@/components/RequestPhotoSlot";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export function FixNowLogo({ className }: { className?: string }) {
   return (
@@ -124,6 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             {user ? (
               <>
+                <NotificationBell />
                 <Button variant="outline" size="sm" onClick={switchMode} className="font-semibold">
                   <ArrowLeftRight className="h-4 w-4" />
                   <span className="hidden sm:inline">
