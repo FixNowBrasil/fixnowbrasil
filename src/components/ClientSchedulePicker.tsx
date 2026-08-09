@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, Check, Clock3 } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ type ScheduleData = { version: 1; weekly: Record<DayKey, DaySchedule>; blocks: S
 type Props = {
   requestId: string;
   providerId: string;
+  clientId: string;
   availability: string | null;
   currentScheduledAt: string | null;
 };
@@ -41,9 +42,20 @@ function isBlocked(blocks: ScheduleBlock[], date: string, start: number, end: nu
   );
 }
 
+function localDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function localDateTime(date: string, time: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
+}
+
 export function ClientSchedulePicker({
   requestId,
   providerId,
+  clientId,
   availability,
   currentScheduledAt,
 }: Props) {
@@ -52,11 +64,29 @@ export function ClientSchedulePicker({
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
 
+  const occupiedQuery = useQuery({
+    queryKey: ["provider-scheduled-slots", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const from = new Date();
+      const to = new Date(from);
+      to.setDate(to.getDate() + 21);
+      const { data, error } = await supabase
+        .from("service_requests")
+        .select("scheduled_at")
+        .eq("provider_id", providerId)
+        .neq("status", "cancelled")
+        .gte("scheduled_at", from.toISOString())
+        .lt("scheduled_at", to.toISOString());
+      if (error) throw error;
+      return new Set((data ?? []).map((row) => row.scheduled_at).filter(Boolean) as string[]);
+    },
+  });
+
   const dates = useMemo(() => {
     if (!schedule) return [] as Date[];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     return Array.from({ length: 21 }, (_, index) => {
       const current = new Date(today);
       current.setDate(today.getDate() + index);
@@ -66,8 +96,7 @@ export function ClientSchedulePicker({
 
   const slots = useMemo(() => {
     if (!date || !schedule) return [] as string[];
-
-    const currentDate = new Date(`${date}T12:00:00`);
+    const currentDate = localDateTime(date, "12:00");
     const config = schedule.weekly[DAYS[currentDate.getDay()]];
     if (!config?.enabled) return [] as string[];
 
@@ -78,46 +107,44 @@ export function ClientSchedulePicker({
 
     for (let minute = start; minute + 60 <= end; minute += 60) {
       const value = `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
-      const slotDate = new Date(`${date}T${value}:00`);
-
-      if (slotDate <= now || isBlocked(schedule.blocks, date, minute, minute + 60)) continue;
+      const slotDate = localDateTime(date, value);
+      const slotIso = slotDate.toISOString();
+      if (slotDate <= now || isBlocked(schedule.blocks, date, minute, minute + 60) || occupiedQuery.data?.has(slotIso)) {
+        continue;
+      }
       result.push(value);
     }
-
     return result;
-  }, [date, schedule]);
+  }, [date, schedule, occupiedQuery.data]);
 
   const save = useMutation({
     mutationFn: async () => {
       if (!date || !time) throw new Error("slot");
-
-      const scheduledAt = new Date(`${date}T${time}:00`).toISOString();
-      const { data, error: conflictError } = await supabase
-        .from("service_requests")
-        .select("id")
-        .eq("provider_id", providerId)
-        .eq("scheduled_at", scheduledAt)
-        .neq("status", "cancelled")
-        .neq("id", requestId)
-        .limit(1);
-
-      if (conflictError) throw conflictError;
-      if (data?.length) throw new Error("occupied");
-
-      const { error } = await supabase
+      const scheduledAt = localDateTime(date, time).toISOString();
+      const { data, error } = await supabase
         .from("service_requests")
         .update({
           scheduled_at: scheduledAt,
           when_option: "date",
           updated_at: new Date().toISOString(),
         })
-        .eq("id", requestId);
+        .eq("id", requestId)
+        .eq("client_id", clientId)
+        .eq("provider_id", providerId)
+        .eq("status", "confirmed")
+        .select("id")
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === "23505") throw new Error("occupied");
+        throw error;
+      }
+      if (!data) throw new Error("not_found");
     },
     onSuccess: () => {
       toast.success("Horário confirmado.");
       queryClient.invalidateQueries({ queryKey: ["request", requestId] });
+      queryClient.invalidateQueries({ queryKey: ["provider-scheduled-slots", providerId] });
       setTime(null);
     },
     onError: (error) => {
@@ -148,10 +175,9 @@ export function ClientSchedulePicker({
           Horário agendado
         </div>
         <p className="text-sm text-muted-foreground">
-          {new Intl.DateTimeFormat("pt-BR", {
-            dateStyle: "full",
-            timeStyle: "short",
-          }).format(new Date(currentScheduledAt))}
+          {new Intl.DateTimeFormat("pt-BR", { dateStyle: "full", timeStyle: "short" }).format(
+            new Date(currentScheduledAt),
+          )}
         </p>
       </section>
     );
@@ -171,9 +197,8 @@ export function ClientSchedulePicker({
 
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
         {dates.slice(0, 15).map((current) => {
-          const value = current.toISOString().slice(0, 10);
+          const value = localDateKey(current);
           const selected = value === date;
-
           return (
             <button
               key={value}
@@ -206,7 +231,6 @@ export function ClientSchedulePicker({
             <Clock3 className="h-4 w-4" />
             Horários disponíveis
           </div>
-
           {slots.length ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {slots.map((slot) => (
@@ -229,12 +253,7 @@ export function ClientSchedulePicker({
               Não há horários disponíveis nesta data.
             </p>
           )}
-
-          <Button
-            className="w-full font-extrabold"
-            disabled={!time || save.isPending}
-            onClick={() => save.mutate()}
-          >
+          <Button className="w-full font-extrabold" disabled={!time || save.isPending} onClick={() => save.mutate()}>
             {save.isPending ? "Confirmando..." : "Confirmar horário"}
           </Button>
         </div>
