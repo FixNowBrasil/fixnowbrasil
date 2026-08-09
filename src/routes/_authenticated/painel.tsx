@@ -248,11 +248,10 @@ export function PainelPage() {
     onError: () => toast.error("Não foi possível atualizar o status."),
   });
 
-  const set = <K extends keyof Form>(k: K, v: Form[K]) =>
-    setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
   const selectedServiceIds = new Set((providerServices.data ?? []).map((item) => item.service_id));
-  const availableServices = (allServices.data ?? []).filter((service) =>
-    !selectedServiceIds.has(service.id),
+  const availableServices = (allServices.data ?? []).filter(
+    (service) => !selectedServiceIds.has(service.id),
   );
 
   return (
@@ -431,7 +430,8 @@ export function PainelPage() {
                 <div>
                   <h2 className="font-display text-base font-bold">Meus serviços</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Escolha os serviços que você realmente oferece e defina o preço inicial de cada um.
+                    Escolha os serviços que você realmente oferece e defina o preço inicial de cada
+                    um.
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-[1fr_150px_auto] sm:items-end">
