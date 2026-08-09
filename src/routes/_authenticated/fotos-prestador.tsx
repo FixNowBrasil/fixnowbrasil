@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { ProviderPhotoGallery } from "@/components/ProviderPhotoGallery";
 import { Button } from "@/components/ui/button";
-import { uploadPhoto } from "@/lib/photo-upload";
+import { uploadProviderPhoto } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -30,7 +30,7 @@ function ProviderPhotosPage() {
     if (!file || !provider.data || !user) return;
     setBusy(true);
     try {
-      const url = await uploadPhoto(file, "avatars", user.id, provider.data.id);
+      const url = await uploadProviderPhoto(file, "avatars", user.id, provider.data.id);
       const { error } = await supabase.from("providers").update({ avatar_url: url }).eq("id", provider.data.id).eq("user_id", user.id);
       if (error) throw error;
       toast.success("Foto de perfil atualizada.");
