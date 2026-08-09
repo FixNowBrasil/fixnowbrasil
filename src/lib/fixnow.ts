@@ -183,7 +183,7 @@ export const providerServicesQuery = (id: string) => ({
   queryFn: async () => {
     const { data, error } = await supabase
       .from("provider_services")
-      .select("price_from, services(id, name, slug, description)")
+      .select("id, service_id, price_from, services(id, name, slug, description)")
       .eq("provider_id", id);
     if (error) throw error;
     return data ?? [];
