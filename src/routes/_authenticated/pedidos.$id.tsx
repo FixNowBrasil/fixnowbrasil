@@ -18,7 +18,10 @@ export const Route = createFileRoute("/_authenticated/pedidos/$id")({
   head: () => ({
     meta: [
       { title: "Acompanhar serviço — FixNow" },
-      { name: "description", content: "Acompanhe em tempo real o status do seu serviço no FixNow." },
+      {
+        name: "description",
+        content: "Acompanhe em tempo real o status do seu serviço no FixNow.",
+      },
       { property: "og:title", content: "Acompanhar serviço — FixNow" },
       { property: "og:description", content: "Timeline do seu serviço, do pedido à avaliação." },
     ],
@@ -142,7 +145,10 @@ function PedidoPage() {
     return (
       <AppShell>
         <div className="mx-auto max-w-2xl px-4 py-10">
-          <EmptyState title="Pedido não encontrado" description="Esse pedido não existe ou foi removido." />
+          <EmptyState
+            title="Pedido não encontrado"
+            description="Esse pedido não existe ou foi removido."
+          />
         </div>
       </AppShell>
     );
@@ -151,12 +157,16 @@ function PedidoPage() {
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const next = NEXT[req.status];
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
-  const canSchedule = !isRequestProvider && !!req.provider_id && req.status === "confirmed";
+  const isRequestClient = !!user?.id && user.id === req.client_id;
+  const canSchedule = isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
-        <Link to="/pedidos" className="inline-flex items-center gap-1 text-sm font-bold text-muted-foreground">
+        <Link
+          to="/pedidos"
+          className="inline-flex items-center gap-1 text-sm font-bold text-muted-foreground"
+        >
           <ChevronLeft className="h-4 w-4" /> Meus pedidos
         </Link>
 
@@ -196,10 +206,11 @@ function PedidoPage() {
           role={isRequestProvider ? "provider" : "client"}
         />
 
-        {canSchedule && req.providers && (
+        {canSchedule && req.providers && user && (
           <ClientSchedulePicker
             requestId={req.id}
             providerId={req.providers.id}
+            clientId={user.id}
             availability={req.providers.availability}
             currentScheduledAt={req.scheduled_at}
           />
@@ -233,7 +244,9 @@ function PedidoPage() {
                   <p
                     className={cn(
                       "pb-6 text-sm",
-                      active ? "font-extrabold text-foreground" : "font-semibold text-muted-foreground",
+                      active
+                        ? "font-extrabold text-foreground"
+                        : "font-semibold text-muted-foreground",
                     )}
                   >
                     {s.label}
@@ -303,8 +316,18 @@ function StarPicker({
       <span className="text-sm font-semibold">{label}</span>
       <span className="flex gap-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <button key={i} type="button" onClick={() => onChange(i)} aria-label={`${label}: ${i} estrelas`}>
-            <Star className={cn("h-6 w-6", i <= value ? "fill-warning text-warning" : "text-border")} />
+          <button
+            key={i}
+            type="button"
+            onClick={() => onChange(i)}
+            aria-label={`${label}: ${i} estrelas`}
+          >
+            <Star
+              className={cn(
+                "h-6 w-6",
+                i <= value ? "fill-warning text-warning" : "text-border",
+              )}
+            />
           </button>
         ))}
       </span>
