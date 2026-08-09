@@ -85,7 +85,7 @@ function AdminPage() {
   });
 
   const updateProvider = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, boolean> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: { approved?: boolean; verified?: boolean } }) => {
       const { error } = await supabase.from("providers").update(patch).eq("id", id);
       if (error) throw error;
     },
