@@ -77,38 +77,112 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <nav className="ml-4 hidden items-center gap-1 md:flex">
             {NAV.slice(0, 4).map((item) => (
-              <Link key={item.to} to={item.to} activeOptions={{ exact: item.exact }} className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground">
+              <Link
+                key={item.to}
+                to={item.to}
+                activeOptions={{ exact: item.exact }}
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+              >
                 {item.label}
               </Link>
             ))}
             {isProvider && (
               <>
-                <Link to="/painel" className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"><Briefcase className="mr-1 inline h-4 w-4" />Painel</Link>
-                <Link to="/agenda" className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"><CalendarDays className="mr-1 inline h-4 w-4" />Agenda</Link>
+                <Link
+                  to="/painel"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+                >
+                  <Briefcase className="mr-1 inline h-4 w-4" />
+                  Painel
+                </Link>
+                <Link
+                  to="/agenda"
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+                >
+                  <CalendarDays className="mr-1 inline h-4 w-4" />
+                  Agenda
+                </Link>
               </>
             )}
-            {isAdmin && <Link to="/admin" className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"><Shield className="mr-1 inline h-4 w-4" />Admin</Link>}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+              >
+                <Shield className="mr-1 inline h-4 w-4" />
+                Admin
+              </Link>
+            )}
           </nav>
           <div className="ml-auto flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="outline" size="sm" onClick={switchMode} className="font-semibold"><ArrowLeftRight className="h-4 w-4" /><span className="hidden sm:inline">{inProviderMode ? "Modo cliente" : hasProviderProfile ? "Modo prestador" : "Quero ser prestador"}</span></Button>
-                <Link to="/perfil" className="hidden sm:block"><Button variant="ghost" size="sm" className="font-semibold"><User className="h-4 w-4" />Minha conta</Button></Link>
-                <Button variant="outline" size="sm" onClick={signOut} className="font-semibold"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">Sair</span></Button>
+                <Button variant="outline" size="sm" onClick={switchMode} className="font-semibold">
+                  <ArrowLeftRight className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {inProviderMode ? "Modo cliente" : hasProviderProfile ? "Modo prestador" : "Quero ser prestador"}
+                  </span>
+                </Button>
+                <Link to="/perfil" className="hidden sm:block">
+                  <Button variant="ghost" size="sm" className="font-semibold">
+                    <User className="h-4 w-4" />
+                    Minha conta
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={signOut} className="font-semibold">
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
               </>
-            ) : <Link to="/auth"><Button size="sm" className="font-semibold">Entrar</Button></Link>}
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" className="font-semibold">
+                  Entrar
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       <main className="flex-1 pb-24 md:pb-10">
-        {requestId && <div className="mx-auto w-full max-w-2xl px-4 pt-5"><RequestPhotoSlot requestId={requestId} /></div>}
+        {requestId && (
+          <div className="mx-auto w-full max-w-2xl px-4 pt-5">
+            <RequestPhotoSlot requestId={requestId} />
+          </div>
+        )}
         {children}
       </main>
 
-      <footer className="hidden border-t border-border bg-muted/40 py-8 md:block"><div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground"><FixNowLogo /><p>Precisou? FixNow. Marketplace de serviços do dia a dia.</p><p className="text-xs">Dados de demonstração — profissionais fictícios.</p></div></footer>
+      <footer className="hidden border-t border-border bg-muted/40 py-8 md:block">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground">
+          <FixNowLogo />
+          <p>Precisou? FixNow. Marketplace de serviços do dia a dia.</p>
+          <p className="text-xs">Dados de demonstração — profissionais fictícios.</p>
+        </div>
+      </footer>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden"><div className="mx-auto grid max-w-md grid-cols-5">{NAV.map((item) => { const active = item.exact ? pathname === item.to : pathname.startsWith(item.to); const Icon = item.icon; return <Link key={item.to} to={item.to} className={cn("flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors", active ? "text-primary" : "text-muted-foreground")}><Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />{item.label}</Link>; })}</div></nav>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-5">
+          {NAV.map((item) => {
+            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
+                  active ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                <Icon className="h-5 w-5" strokeWidth={active ? 2.6 : 2} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
