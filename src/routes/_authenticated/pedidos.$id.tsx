@@ -151,7 +151,8 @@ function PedidoPage() {
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const next = NEXT[req.status];
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
-  const canSchedule = !isRequestProvider && !!req.provider_id && req.status === "confirmed";
+  const isRequestClient = !!user?.id && user.id === req.client_id;
+  const canSchedule = isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
 
   return (
     <AppShell>
@@ -196,10 +197,11 @@ function PedidoPage() {
           role={isRequestProvider ? "provider" : "client"}
         />
 
-        {canSchedule && req.providers && (
+        {canSchedule && req.providers && user && (
           <ClientSchedulePicker
             requestId={req.id}
             providerId={req.providers.id}
+            clientId={user.id}
             availability={req.providers.availability}
             currentScheduledAt={req.scheduled_at}
           />
