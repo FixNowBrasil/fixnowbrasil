@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { RequestPhotoSlot } from "@/components/RequestPhotoSlot";
 
 export function FixNowLogo({ className }: { className?: string }) {
   return (
@@ -50,6 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const hasProviderProfile = !!providerProfile.data;
   const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda");
+  const requestId = pathname.startsWith("/pedidos/") ? pathname.split("/")[2] : null;
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -143,7 +145,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 pb-24 md:pb-10">{children}</main>
+      <main className="flex-1 pb-24 md:pb-10">
+        {requestId && (
+          <div className="mx-auto w-full max-w-2xl px-4 pt-5">
+            <RequestPhotoSlot requestId={requestId} />
+          </div>
+        )}
+        {children}
+      </main>
 
       <footer className="hidden border-t border-border bg-muted/40 py-8 md:block">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 text-sm text-muted-foreground">
