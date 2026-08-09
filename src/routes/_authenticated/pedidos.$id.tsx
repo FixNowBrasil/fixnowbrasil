@@ -98,7 +98,11 @@ function PedidoPage() {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
     },
     onError: (error) => {
-      toast.error(error.message === "avaliação inválida" ? "A avaliação só pode ser enviada após o serviço." : "Não foi possível enviar sua avaliação.");
+      toast.error(
+        error.message === "avaliação inválida"
+          ? "A avaliação só pode ser enviada após o serviço."
+          : "Não foi possível enviar sua avaliação.",
+      );
     },
   });
 
