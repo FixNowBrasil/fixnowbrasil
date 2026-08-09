@@ -158,7 +158,8 @@ function PedidoPage() {
   const next = NEXT[req.status];
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
   const isRequestClient = !!user?.id && user.id === req.client_id;
-  const canSchedule = isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
+  const canSchedule =
+    isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
 
   return (
     <AppShell>
@@ -323,10 +324,7 @@ function StarPicker({
             aria-label={`${label}: ${i} estrelas`}
           >
             <Star
-              className={cn(
-                "h-6 w-6",
-                i <= value ? "fill-warning text-warning" : "text-border",
-              )}
+              className={cn("h-6 w-6", i <= value ? "fill-warning text-warning" : "text-border")}
             />
           </button>
         ))}
