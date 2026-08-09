@@ -16,6 +16,7 @@ import {
   allServicesQuery,
   categoriesQuery,
   providerServicesQuery,
+  type RequestStatus,
   type ServiceRequest,
 } from "@/lib/fixnow";
 
@@ -23,9 +24,15 @@ export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
       { title: "Painel do prestador — FixNow" },
-      { name: "description", content: "Gerencie solicitações, agenda, orçamentos e seu perfil profissional." },
+      {
+        name: "description",
+        content: "Gerencie solicitações, agenda, orçamentos e seu perfil profissional.",
+      },
       { property: "og:title", content: "Painel do prestador — FixNow" },
-      { property: "og:description", content: "Suas solicitações e desempenho em um só lugar." },
+      {
+        property: "og:description",
+        content: "Suas solicitações e desempenho em um só lugar.",
+      },
     ],
   }),
   component: PainelPage,
@@ -61,6 +68,13 @@ const EMPTY: Form = {
   available_now: true,
 };
 
+const PROVIDER_ACTIONS: Partial<Record<RequestStatus, { label: string; next: RequestStatus }>> = {
+  sent: { label: "Analisar pedido", next: "analyzing" },
+  confirmed: { label: "Estou a caminho", next: "on_the_way" },
+  on_the_way: { label: "Iniciar serviço", next: "in_progress" },
+  in_progress: { label: "Concluir serviço", next: "completed" },
+};
+
 export function PainelPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -83,7 +97,6 @@ export function PainelPage() {
       return data;
     },
   });
-
   const p = myProvider.data;
 
   const providerServices = useQuery({
@@ -144,7 +157,9 @@ export function PainelPage() {
         const { error } = await supabase.from("providers").update(payload).eq("id", p.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("providers").insert({ ...payload, user_id: user!.id });
+        const { error } = await supabase
+          .from("providers")
+          .insert({ ...payload, user_id: user!.id });
         if (error) throw error;
       }
     },
@@ -203,7 +218,10 @@ export function PainelPage() {
   const updateServicePrice = useMutation({
     mutationFn: async ({ id, price }: { id: string; price: number }) => {
       if (price <= 0) throw new Error("preço");
-      const { error } = await supabase.from("provider_services").update({ price_from: price }).eq("id", id);
+      const { error } = await supabase
+        .from("provider_services")
+        .update({ price_from: price })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -215,27 +233,31 @@ export function PainelPage() {
   });
 
   const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: RequestStatus }) => {
       const { error } = await supabase
         .from("service_requests")
-        .update({ status: status as never })
-        .eq("id", id);
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("provider_id", p!.id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["provider-requests"] }),
-    onError: () => toast.error("Não foi possível atualizar."),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["provider-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["request"] });
+    },
+    onError: () => toast.error("Não foi possível atualizar o status."),
   });
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
-
   const selectedServiceIds = new Set((providerServices.data ?? []).map((item) => item.service_id));
-  const availableServices = (allServices.data ?? []).filter((service) => !selectedServiceIds.has(service.id));
+  const availableServices = (allServices.data ?? []).filter(
+    (service) => !selectedServiceIds.has(service.id),
+  );
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-4xl space-y-5 px-4 py-6">
         <h1 className="font-display text-2xl font-extrabold">Painel do prestador</h1>
-
         {myProvider.isLoading ? (
           <div className="h-40 animate-pulse rounded-2xl bg-muted" />
         ) : (
@@ -255,29 +277,34 @@ export function PainelPage() {
                 ))}
               </div>
             )}
-
             <section className="surface-card space-y-4 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="font-display text-base font-bold">
                     {p ? "Meu perfil profissional" : "Cadastre-se como prestador"}
                   </h2>
-                  {!p && <p className="mt-1 text-sm text-muted-foreground">Crie seu perfil profissional para começar a receber solicitações de clientes.</p>}
+                  {!p && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Crie seu perfil profissional para começar a receber solicitações de clientes.
+                    </p>
+                  )}
                 </div>
                 {p && (
                   <span
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                      p.approved ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${p.approved ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}
                   >
                     {p.approved ? "Aprovado" : "Em análise"}
                   </span>
                 )}
               </div>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Nome profissional" id="name">
-                  <Input id="name" value={form.name} onChange={(e) => set("name", e.target.value)} maxLength={80} />
+                  <Input
+                    id="name"
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    maxLength={80}
+                  />
                 </Field>
                 <Field label="Título curto" id="headline">
                   <Input
@@ -312,7 +339,12 @@ export function PainelPage() {
                   </select>
                 </Field>
                 <Field label="Cidade" id="city">
-                  <Input id="city" value={form.city} onChange={(e) => set("city", e.target.value)} maxLength={60} />
+                  <Input
+                    id="city"
+                    value={form.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    maxLength={60}
+                  />
                 </Field>
                 <Field label="Bairro" id="hood">
                   <Input
@@ -358,7 +390,6 @@ export function PainelPage() {
                   />
                 </Field>
               </div>
-
               <Field label="Descrição" id="bio">
                 <Textarea
                   id="bio"
@@ -369,11 +400,12 @@ export function PainelPage() {
                   placeholder="Conte sua experiência, especialidades e diferenciais."
                 />
               </Field>
-
               <div className="flex items-center justify-between rounded-xl border border-border p-3">
                 <div>
                   <p className="text-sm font-bold">Disponível agora</p>
-                  <p className="text-xs text-muted-foreground">Aparece como online para os clientes.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Aparece como online para os clientes.
+                  </p>
                 </div>
                 <Switch
                   checked={form.available_now}
@@ -381,21 +413,27 @@ export function PainelPage() {
                   aria-label="Disponível agora"
                 />
               </div>
-
-              <Button className="w-full font-extrabold" disabled={save.isPending} onClick={() => save.mutate()}>
-                {save.isPending ? "Salvando..." : p ? "Salvar alterações" : "Criar perfil profissional"}
+              <Button
+                className="w-full font-extrabold"
+                disabled={save.isPending}
+                onClick={() => save.mutate()}
+              >
+                {save.isPending
+                  ? "Salvando..."
+                  : p
+                    ? "Salvar alterações"
+                    : "Criar perfil profissional"}
               </Button>
             </section>
-
             {p && (
               <section className="surface-card space-y-4 p-5">
                 <div>
                   <h2 className="font-display text-base font-bold">Meus serviços</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Escolha os serviços que você realmente oferece e defina o preço inicial de cada um.
+                    Escolha os serviços que você realmente oferece e defina o preço inicial de cada
+                    um.
                   </p>
                 </div>
-
                 <div className="grid gap-3 sm:grid-cols-[1fr_150px_auto] sm:items-end">
                   <Field label="Adicionar serviço" id="provider-service">
                     <select
@@ -432,7 +470,6 @@ export function PainelPage() {
                     Adicionar
                   </Button>
                 </div>
-
                 {providerServices.isLoading ? (
                   <div className="h-20 animate-pulse rounded-xl bg-muted" />
                 ) : (providerServices.data ?? []).length === 0 ? (
@@ -445,15 +482,24 @@ export function PainelPage() {
                 ) : (
                   <ul className="space-y-2">
                     {(providerServices.data ?? []).map((item) => (
-                      <li key={item.id} className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
+                      <li
+                        key={item.id}
+                        className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center"
+                      >
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold">{item.services?.name ?? "Serviço"}</p>
+                          <p className="truncate text-sm font-bold">
+                            {item.services?.name ?? "Serviço"}
+                          </p>
                           {item.services?.description && (
-                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{item.services.description}</p>
+                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                              {item.services.description}
+                            </p>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-muted-foreground">A partir de R$</span>
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            A partir de R$
+                          </span>
                           <Input
                             type="number"
                             min={1}
@@ -483,56 +529,78 @@ export function PainelPage() {
                     ))}
                   </ul>
                 )}
-
-                {!allServices.isLoading && availableServices.length === 0 && (providerServices.data ?? []).length > 0 && (
-                  <p className="text-xs font-medium text-muted-foreground">Você já adicionou todos os serviços disponíveis.</p>
-                )}
+                {!allServices.isLoading &&
+                  availableServices.length === 0 &&
+                  (providerServices.data ?? []).length > 0 && (
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Você já adicionou todos os serviços disponíveis.
+                    </p>
+                  )}
               </section>
             )}
-
             {p && (
               <section className="surface-card p-5">
-                <h2 className="mb-3 font-display text-base font-bold">Solicitações recebidas</h2>
+                <h2 className="mb-1 font-display text-base font-bold">Solicitações recebidas</h2>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Analise o pedido, envie seu orçamento e acompanhe o serviço por aqui.
+                </p>
                 {(requests.data ?? []).length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhuma solicitação por enquanto.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {(requests.data ?? []).map((row) => {
-                      const r = row as unknown as ServiceRequest & { services: { name: string } | null };
+                      const r = row as unknown as ServiceRequest & {
+                        services: { name: string } | null;
+                      };
+                      const action = PROVIDER_ACTIONS[r.status];
                       return (
-                        <li key={r.id} className="flex flex-wrap items-center gap-3 py-3">
+                        <li
+                          key={r.id}
+                          className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center"
+                        >
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-bold">{r.services?.name ?? r.need}</p>
-                            <p className="truncate text-xs text-muted-foreground">{r.description}</p>
+                            <p className="truncate text-sm font-bold">
+                              {r.services?.name ?? r.need ?? "Serviço"}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {r.description}
+                            </p>
+                            {r.scheduled_at && (
+                              <p className="mt-1 text-xs font-semibold text-primary">
+                                Agendado:{" "}
+                                {new Intl.DateTimeFormat("pt-BR", {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                }).format(new Date(r.scheduled_at))}
+                              </p>
+                            )}
                           </div>
-                          <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
+                          <span className="w-fit rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
                             {REQUEST_STEPS.find((s) => s.key === r.status)?.label ?? r.status}
                           </span>
-                          <div className="flex gap-2">
-                            {r.status === "sent" && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="font-bold"
-                                  onClick={() => setStatus.mutate({ id: r.id, status: "confirmed" })}
-                                >
-                                  Aceitar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="font-bold"
-                                  onClick={() => setStatus.mutate({ id: r.id, status: "cancelled" })}
-                                >
-                                  Recusar
-                                </Button>
-                              </>
-                            )}
-                            <Link to="/pedidos/$id" params={{ id: r.id }}>
-                              <Button size="sm" variant="ghost" className="font-bold">
-                                Orçamento e chat
+                          <div className="flex flex-wrap gap-2">
+                            {action && (
+                              <Button
+                                size="sm"
+                                className="font-bold"
+                                disabled={setStatus.isPending}
+                                onClick={() => setStatus.mutate({ id: r.id, status: action.next })}
+                              >
+                                {action.label}
                               </Button>
-                            </Link>
+                            )}
+                            {r.status === "analyzing" && (
+                              <Button size="sm" variant="outline" className="font-bold" asChild>
+                                <Link to="/pedidos/$id" params={{ id: r.id }}>
+                                  Enviar orçamento
+                                </Link>
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" className="font-bold" asChild>
+                              <Link to="/pedidos/$id" params={{ id: r.id }}>
+                                Ver pedido
+                              </Link>
+                            </Button>
                           </div>
                         </li>
                       );
