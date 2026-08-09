@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
 import { QuotePanel, RequestChat } from "@/components/request-extras";
+import { ClientSchedulePicker } from "@/components/ClientSchedulePicker";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
@@ -48,7 +49,7 @@ function PedidoPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_requests")
-        .select("*, providers(id, name, avatar_url, headline), services(name)")
+        .select("*, providers(id, name, avatar_url, headline, availability), services(name)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -69,8 +70,6 @@ function PedidoPage() {
       return data;
     },
   });
-
-
 
   const advance = useMutation({
     mutationFn: async (status: string) => {
@@ -128,7 +127,13 @@ function PedidoPage() {
 
   const req = request.data as unknown as
     | (ServiceRequest & {
-        providers: { id: string; name: string; avatar_url: string | null; headline: string | null } | null;
+        providers: {
+          id: string;
+          name: string;
+          avatar_url: string | null;
+          headline: string | null;
+          availability: string | null;
+        } | null;
         services: { name: string } | null;
       })
     | null;
@@ -146,6 +151,7 @@ function PedidoPage() {
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const next = NEXT[req.status];
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
+  const canSchedule = !isRequestProvider && !!req.provider_id && req.status === "confirmed";
 
   return (
     <AppShell>
@@ -190,9 +196,16 @@ function PedidoPage() {
           role={isRequestProvider ? "provider" : "client"}
         />
 
+        {canSchedule && req.providers && (
+          <ClientSchedulePicker
+            requestId={req.id}
+            providerId={req.providers.id}
+            availability={req.providers.availability}
+            currentScheduledAt={req.scheduled_at}
+          />
+        )}
+
         {user && <RequestChat requestId={req.id} meId={user.id} />}
-
-
 
         <section className="surface-card p-5">
           <h2 className="mb-4 font-display text-base font-bold">Acompanhamento</h2>
