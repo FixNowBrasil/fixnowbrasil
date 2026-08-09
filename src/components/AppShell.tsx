@@ -1,10 +1,10 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase } from "lucide-react";
+import { Home, Search, ClipboardList, Heart, User, Wrench, LogOut, Shield, Briefcase, ArrowLeftRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
 export function FixNowLogo({ className }: { className?: string }) {
@@ -34,11 +34,36 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const providerProfile = useQuery({
+    queryKey: ["my-provider", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("providers")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const hasProviderProfile = !!providerProfile.data;
+  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador");
+
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
+  }
+
+  function switchMode() {
+    if (inProviderMode) {
+      navigate({ to: "/" });
+      return;
+    }
+    navigate({ to: hasProviderProfile ? "/painel" : "/cadastro-prestador" });
   }
 
   return (
@@ -81,6 +106,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             {user ? (
               <>
+                <Button variant="outline" size="sm" onClick={switchMode} className="font-semibold">
+                  <ArrowLeftRight className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {inProviderMode ? "Modo cliente" : hasProviderProfile ? "Modo prestador" : "Quero ser prestador"}
+                  </span>
+                </Button>
                 <Link to="/perfil" className="hidden sm:block">
                   <Button variant="ghost" size="sm" className="font-semibold">
                     <User className="h-4 w-4" />
