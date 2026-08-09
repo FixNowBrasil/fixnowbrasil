@@ -6,7 +6,9 @@ import type { RequestStatus } from "./fixnow";
  * This is intentionally defensive: the database remains the source of truth
  * and must reject invalid transitions through RLS/triggers/RPCs.
  */
-export const REQUEST_STATUS_TRANSITIONS: Readonly<Record<RequestStatus, readonly RequestStatus[]>> = {
+export const REQUEST_STATUS_TRANSITIONS: Readonly<
+  Record<RequestStatus, readonly RequestStatus[]>
+> = {
   sent: ["analyzing", "cancelled"],
   analyzing: ["confirmed", "cancelled"],
   confirmed: ["on_the_way", "cancelled"],
