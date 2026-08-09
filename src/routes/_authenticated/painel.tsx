@@ -54,7 +54,7 @@ const EMPTY: Form = {
   available_now: true,
 };
 
-function PainelPage() {
+export function PainelPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const categories = useQuery(categoriesQuery);
@@ -136,6 +136,7 @@ function PainelPage() {
     onSuccess: () => {
       toast.success("Perfil profissional salvo.");
       queryClient.invalidateQueries({ queryKey: ["my-provider-full"] });
+      queryClient.invalidateQueries({ queryKey: ["my-provider", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["providers"] });
     },
     onError: () => toast.error("Verifique os dados e tente novamente."),
@@ -182,9 +183,12 @@ function PainelPage() {
 
             <section className="surface-card space-y-4 p-5">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="font-display text-base font-bold">
-                  {p ? "Meu perfil profissional" : "Criar meu perfil profissional"}
-                </h2>
+                <div>
+                  <h2 className="font-display text-base font-bold">
+                    {p ? "Meu perfil profissional" : "Cadastre-se como prestador"}
+                  </h2>
+                  {!p && <p className="mt-1 text-sm text-muted-foreground">Crie seu perfil profissional para começar a receber solicitações de clientes.</p>}
+                </div>
                 {p && (
                   <span
                     className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
