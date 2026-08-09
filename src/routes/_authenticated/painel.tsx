@@ -68,9 +68,7 @@ const EMPTY: Form = {
   available_now: true,
 };
 
-const PROVIDER_ACTIONS: Partial<
-  Record<RequestStatus, { label: string; next: RequestStatus }>
-> = {
+const PROVIDER_ACTIONS: Partial<Record<RequestStatus, { label: string; next: RequestStatus }>> = {
   sent: { label: "Analisar pedido", next: "analyzing" },
   confirmed: { label: "Estou a caminho", next: "on_the_way" },
   on_the_way: { label: "Iniciar serviço", next: "in_progress" },
@@ -156,10 +154,7 @@ export function PainelPage() {
         available_now: form.available_now,
       };
       if (p) {
-        const { error } = await supabase
-          .from("providers")
-          .update(payload)
-          .eq("id", p.id);
+        const { error } = await supabase.from("providers").update(payload).eq("id", p.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
@@ -209,10 +204,7 @@ export function PainelPage() {
 
   const removeService = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("provider_services")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("provider_services").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -258,9 +250,7 @@ export function PainelPage() {
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
-  const selectedServiceIds = new Set(
-    (providerServices.data ?? []).map((item) => item.service_id),
-  );
+  const selectedServiceIds = new Set((providerServices.data ?? []).map((item) => item.service_id));
   const availableServices = (allServices.data ?? []).filter(
     (service) => !selectedServiceIds.has(service.id),
   );
@@ -555,9 +545,7 @@ export function PainelPage() {
                   Analise o pedido, envie seu orçamento e acompanhe o serviço por aqui.
                 </p>
                 {(requests.data ?? []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhuma solicitação por enquanto.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Nenhuma solicitação por enquanto.</p>
                 ) : (
                   <ul className="divide-y divide-border">
                     {(requests.data ?? []).map((row) => {
@@ -596,9 +584,7 @@ export function PainelPage() {
                                 size="sm"
                                 className="font-bold"
                                 disabled={setStatus.isPending}
-                                onClick={() =>
-                                  setStatus.mutate({ id: r.id, status: action.next })
-                                }
+                                onClick={() => setStatus.mutate({ id: r.id, status: action.next })}
                               >
                                 {action.label}
                               </Button>
@@ -630,15 +616,7 @@ export function PainelPage() {
   );
 }
 
-function Field({
-  label,
-  id,
-  children,
-}: {
-  label: string;
-  id: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
