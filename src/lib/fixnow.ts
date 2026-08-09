@@ -190,4 +190,8 @@ export const providerServicesQuery = (id: string) => ({
   },
 });
 
-export { canTransitionRequestStatus, getNextRequestStatuses, REQUEST_STATUS_TRANSITIONS } from "./request-lifecycle";
+export {
+  canTransitionRequestStatus,
+  getNextRequestStatuses,
+  REQUEST_STATUS_TRANSITIONS,
+} from "./request-lifecycle";
