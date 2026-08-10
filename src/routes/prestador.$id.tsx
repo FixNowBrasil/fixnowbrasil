@@ -15,18 +15,75 @@ import {
   providerServicesQuery,
 } from "@/lib/fixnow";
 
+const SITE_URL = "https://fixnowbrasil.lovable.app";
+
 export const Route = createFileRoute("/prestador/$id")({
-  head: () => ({
-    meta: [
-      { title: "Perfil do profissional — FixNow" },
-      {
-        name: "description",
-        content: "Veja avaliações, serviços, preços e região de atendimento do profissional no FixNow.",
-      },
-      { property: "og:title", content: "Perfil do profissional — FixNow" },
-      { property: "og:description", content: "Avaliações reais, preços e disponibilidade." },
-    ],
-  }),
+  loader: async ({ context, params }) => {
+    const provider = await context.queryClient.ensureQueryData(providerQuery(params.id));
+    const categories = await context.queryClient.ensureQueryData(categoriesQuery);
+    const categoryName = categories.find((c) => c.id === provider?.category_id)?.name ?? null;
+    return { provider, categoryName };
+  },
+  head: ({ params, loaderData }) => {
+    const p = loaderData?.provider;
+    const url = `${SITE_URL}/prestador/${params.id}`;
+    if (!p) {
+      return {
+        meta: [
+          { title: "Profissional indisponível — FixNow" },
+          { name: "robots", content: "noindex" },
+        ],
+        links: [{ rel: "canonical", href: url }],
+      };
+    }
+    const category = loaderData?.categoryName ?? "Serviços";
+    const title = `${p.name} — ${category} | FixNow`.slice(0, 60);
+    const description =
+      `${p.name}: ${p.headline ?? category} em ${p.neighborhood ? `${p.neighborhood}, ` : ""}${p.city}. ` +
+      `Nota ${Number(p.rating).toFixed(1)} em ${p.reviews_count} avaliações.`;
+    const image = p.avatar_url?.startsWith("http") ? p.avatar_url : `${SITE_URL}/og-fixnow.jpg`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "profile" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: image },
+        { name: "twitter:image", content: image },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: p.name,
+            image,
+            url,
+            description: p.bio ?? p.headline ?? description,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: p.city,
+              ...(p.neighborhood ? { addressRegion: p.neighborhood } : {}),
+              addressCountry: "BR",
+            },
+            ...(p.reviews_count > 0
+              ? {
+                  aggregateRating: {
+                    "@type": "AggregateRating",
+                    ratingValue: Number(p.rating).toFixed(1),
+                    reviewCount: p.reviews_count,
+                  },
+                }
+              : {}),
+          }),
+        },
+      ],
+    };
+  },
   component: ProviderPage,
 });
 
