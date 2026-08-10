@@ -30,12 +30,12 @@ export function ProviderPhotoGallery({ providerId, userId, photos }: { providerI
     const next = items.filter((item) => item !== url);
     const { error } = await supabase.from("providers").update({ work_photos: next }).eq("id", providerId).eq("user_id", userId);
     if (error) { toast.error("Não foi possível remover a foto."); return; }
-    const marker = `/storage/v1/object/public/provider-work-photos/`;
-    const path = url.split(marker)[1];
+    const path = storagePathFromUrl("provider-work-photos", url);
     if (path) await supabase.storage.from("provider-work-photos").remove([path]);
     setItems(next);
     toast.success("Foto removida.");
   }
+
 
   return <div className="space-y-3">
     <div className="flex items-center justify-between"><div><h3 className="font-bold">Fotos dos meus trabalhos</h3><p className="text-xs text-muted-foreground">Até 8 fotos, máximo de 5 MB cada.</p></div>
