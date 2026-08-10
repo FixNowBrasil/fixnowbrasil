@@ -72,25 +72,17 @@ function PedidoPage() {
       if (!req.provider_id || req.client_id !== user?.id || req.status !== "completed") {
         throw new Error("avaliação inválida");
       }
-      const { error } = await supabase.from("reviews").insert({
-        provider_id: req.provider_id,
-        request_id: req.id,
-        client_id: user.id,
-        author_name: user.email?.split("@")[0] ?? "Cliente FixNow",
-        rating,
-        punctuality,
-        quality,
-        service,
-        comment: comment.trim() || null,
-      });
+
+      const { error } = await supabase.rpc("submit_review" as never, {
+        p_request_id: req.id,
+        p_rating: rating,
+        p_punctuality: punctuality,
+        p_quality: quality,
+        p_service: service,
+        p_comment: comment.trim() || null,
+        p_author_name: user.email?.split("@")[0] ?? "Cliente FixNow",
+      } as never);
       if (error) throw error;
-      const { error: e2 } = await supabase
-        .from("service_requests")
-        .update({ status: "rated" as never, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .eq("client_id", user.id)
-        .eq("status", "completed");
-      if (e2) throw e2;
     },
     onSuccess: () => {
       toast.success("Obrigado pela avaliação!");
@@ -98,10 +90,13 @@ function PedidoPage() {
       queryClient.invalidateQueries({ queryKey: ["reviews"] });
     },
     onError: (error) => {
+      const message = error instanceof Error ? error.message : "";
       toast.error(
-        error.message === "avaliação inválida"
+        message === "avaliação inválida"
           ? "A avaliação só pode ser enviada após o serviço."
-          : "Não foi possível enviar sua avaliação.",
+          : message.includes("already been reviewed")
+            ? "Este serviço já foi avaliado."
+            : "Não foi possível enviar sua avaliação.",
       );
     },
   });
