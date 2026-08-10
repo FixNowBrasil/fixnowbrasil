@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { ProviderPhotoGallery } from "@/components/ProviderPhotoGallery";
 import { Button } from "@/components/ui/button";
-import { uploadProviderPhoto } from "@/lib/photo-upload";
+import { uploadProviderPhoto, storagePathFromUrl } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -46,9 +46,9 @@ function ProviderPhotosPage() {
     const old = provider.data.avatar_url;
     const { error } = await supabase.from("providers").update({ avatar_url: null }).eq("id", provider.data.id).eq("user_id", user.id);
     if (error) { toast.error("Não foi possível remover a foto."); return; }
-    const marker = "/storage/v1/object/public/avatars/";
-    const path = old.split(marker)[1];
+    const path = storagePathFromUrl("avatars", old);
     if (path) await supabase.storage.from("avatars").remove([path]);
+
     queryClient.invalidateQueries({ queryKey: ["my-provider-photos"] });
     queryClient.invalidateQueries({ queryKey: ["my-provider-full"] });
     toast.success("Foto de perfil removida.");
