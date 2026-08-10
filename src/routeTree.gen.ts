@@ -15,7 +15,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BuscarRouteImport } from './routes/buscar'
 import { Route as SolicitarRouteImport } from './routes/solicitar'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
+import { Route as AuthenticatedCadastroPrestadorRouteImport } from './routes/_authenticated/cadastro-prestador'
 import { Route as AuthenticatedFavoritosRouteImport } from './routes/_authenticated/favoritos'
+import { Route as AuthenticatedFotosPrestadorRouteImport } from './routes/_authenticated/fotos-prestador'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
@@ -52,11 +55,28 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCadastroPrestadorRoute =
+  AuthenticatedCadastroPrestadorRouteImport.update({
+    id: '/cadastro-prestador',
+    path: '/cadastro-prestador',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFavoritosRoute = AuthenticatedFavoritosRouteImport.update({
   id: '/favoritos',
   path: '/favoritos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFotosPrestadorRoute =
+  AuthenticatedFotosPrestadorRouteImport.update({
+    id: '/fotos-prestador',
+    path: '/fotos-prestador',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -95,7 +115,10 @@ export interface FileRoutesByFullPath {
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
+  '/cadastro-prestador': typeof AuthenticatedCadastroPrestadorRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/fotos-prestador': typeof AuthenticatedFotosPrestadorRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -109,7 +132,10 @@ export interface FileRoutesByTo {
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
+  '/cadastro-prestador': typeof AuthenticatedCadastroPrestadorRoute
   '/favoritos': typeof AuthenticatedFavoritosRoute
+  '/fotos-prestador': typeof AuthenticatedFotosPrestadorRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -125,7 +151,10 @@ export interface FileRoutesById {
   '/buscar': typeof BuscarRoute
   '/solicitar': typeof SolicitarRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
+  '/_authenticated/cadastro-prestador': typeof AuthenticatedCadastroPrestadorRoute
   '/_authenticated/favoritos': typeof AuthenticatedFavoritosRoute
+  '/_authenticated/fotos-prestador': typeof AuthenticatedFotosPrestadorRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -141,7 +170,10 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/solicitar'
     | '/admin'
+    | '/agenda'
+    | '/cadastro-prestador'
     | '/favoritos'
+    | '/fotos-prestador'
     | '/painel'
     | '/perfil'
     | '/categoria/$slug'
@@ -155,7 +187,10 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/solicitar'
     | '/admin'
+    | '/agenda'
+    | '/cadastro-prestador'
     | '/favoritos'
+    | '/fotos-prestador'
     | '/painel'
     | '/perfil'
     | '/categoria/$slug'
@@ -170,7 +205,10 @@ export interface FileRouteTypes {
     | '/buscar'
     | '/solicitar'
     | '/_authenticated/admin'
+    | '/_authenticated/agenda'
+    | '/_authenticated/cadastro-prestador'
     | '/_authenticated/favoritos'
+    | '/_authenticated/fotos-prestador'
     | '/_authenticated/painel'
     | '/_authenticated/perfil'
     | '/categoria/$slug'
@@ -233,11 +271,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agenda': {
+      id: '/_authenticated/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cadastro-prestador': {
+      id: '/_authenticated/cadastro-prestador'
+      path: '/cadastro-prestador'
+      fullPath: '/cadastro-prestador'
+      preLoaderRoute: typeof AuthenticatedCadastroPrestadorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/favoritos': {
       id: '/_authenticated/favoritos'
       path: '/favoritos'
       fullPath: '/favoritos'
       preLoaderRoute: typeof AuthenticatedFavoritosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fotos-prestador': {
+      id: '/_authenticated/fotos-prestador'
+      path: '/fotos-prestador'
+      fullPath: '/fotos-prestador'
+      preLoaderRoute: typeof AuthenticatedFotosPrestadorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/painel': {
@@ -287,7 +346,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
+  AuthenticatedCadastroPrestadorRoute: typeof AuthenticatedCadastroPrestadorRoute
   AuthenticatedFavoritosRoute: typeof AuthenticatedFavoritosRoute
+  AuthenticatedFotosPrestadorRoute: typeof AuthenticatedFotosPrestadorRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRoute
@@ -296,7 +358,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
+  AuthenticatedCadastroPrestadorRoute: AuthenticatedCadastroPrestadorRoute,
   AuthenticatedFavoritosRoute: AuthenticatedFavoritosRoute,
+  AuthenticatedFotosPrestadorRoute: AuthenticatedFotosPrestadorRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRoute,
@@ -318,3 +383,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
