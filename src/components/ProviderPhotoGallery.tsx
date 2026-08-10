@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { uploadProviderPhoto } from "@/lib/photo-upload";
+import { uploadProviderPhoto, storagePathFromUrl } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ProviderPhotoGallery({ providerId, userId, photos }: { providerId: string; userId: string; photos: string[] }) {
