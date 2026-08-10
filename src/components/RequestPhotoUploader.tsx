@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { uploadPhoto, createPhotoUrl } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 
 export function RequestPhotoUploader({ requestId, userId, photos }: { requestId: string; userId: string; photos: string[] }) {
+  const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [urls, setUrls] = useState<Record<string, string>>({});
@@ -28,7 +30,7 @@ export function RequestPhotoUploader({ requestId, userId, photos }: { requestId:
       const { error } = await supabase.from("service_requests").update({ photos: next }).eq("id", requestId).eq("client_id", userId);
       if (error) throw error;
       toast.success("Foto adicionada.");
-      window.location.reload();
+      await queryClient.invalidateQueries({ queryKey: ["request-photos", requestId] });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível enviar a foto.");
     } finally { setBusy(false); }
@@ -39,7 +41,7 @@ export function RequestPhotoUploader({ requestId, userId, photos }: { requestId:
     const { error } = await supabase.from("service_requests").update({ photos: next }).eq("id", requestId).eq("client_id", userId);
     if (error) { toast.error("Não foi possível remover a foto."); return; }
     await supabase.storage.from("service-request-photos").remove([path]);
-    window.location.reload();
+    await queryClient.invalidateQueries({ queryKey: ["request-photos", requestId] });
   }
 
   return <section className="surface-card space-y-3 p-5">
