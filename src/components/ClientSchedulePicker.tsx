@@ -37,7 +37,7 @@ function parseSchedule(value: string | null): ScheduleData | null {
 }
 
 function minutes(value: string) {
-  const [hours, minutesValue] = value.split(":").map(Number);
+  const [hours = 0, minutesValue = 0] = value.split(":").map(Number);
   return hours * 60 + minutesValue;
 }
 
@@ -52,8 +52,8 @@ function localDateKey(date: Date) {
 }
 
 function localDateTime(date: string, time: string) {
-  const [year, month, day] = date.split("-").map(Number);
-  const [hour, minute] = time.split(":").map(Number);
+  const [year = 1970, month = 1, day = 1] = date.split("-").map(Number);
+  const [hour = 0, minute = 0] = time.split(":").map(Number);
   return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
