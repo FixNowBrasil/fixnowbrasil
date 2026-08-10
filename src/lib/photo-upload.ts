@@ -18,12 +18,29 @@ export async function createPhotoUrl(path: string, expiresIn = 3600) {
   return data.signedUrl;
 }
 
-export async function uploadProviderPhoto(file: File, bucket: "avatars" | "provider-work-photos", userId: string, folder = "") {
+export type ProviderBucket = "avatars" | "provider-work-photos";
+
+// Buckets são privados: gera uma URL assinada de longa duração para exibição pública.
+const LONG_LIVED_SECONDS = 60 * 60 * 24 * 365 * 5;
+
+export async function uploadProviderPhoto(file: File, bucket: ProviderBucket, userId: string, folder = "") {
   if (!file.type.startsWith("image/")) throw new Error("Selecione uma imagem válida.");
   if (file.size > 5 * 1024 * 1024) throw new Error("A imagem deve ter no máximo 5 MB.");
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${userId}/${folder ? `${folder}/` : ""}${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from(bucket).upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
   if (error) throw error;
-  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  const { data, error: signError } = await supabase.storage.from(bucket).createSignedUrl(path, LONG_LIVED_SECONDS);
+  if (signError) throw signError;
+  return data.signedUrl;
 }
+
+/** Extrai o caminho do arquivo a partir de uma URL pública ou assinada do Storage. */
+export function storagePathFromUrl(bucket: ProviderBucket, url: string): string | null {
+  for (const marker of [`/storage/v1/object/public/${bucket}/`, `/storage/v1/object/sign/${bucket}/`]) {
+    const part = url.split(marker)[1];
+    if (part) return decodeURIComponent(part.split("?")[0] ?? "");
+  }
+  return null;
+}
+
