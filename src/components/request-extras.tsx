@@ -119,22 +119,29 @@ export function QuotePanel({
 
   const decide = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "accepted" | "rejected" }) => {
+      if (status === "accepted") {
+        const { error } = await supabase.rpc("accept_quote" as never, {
+          p_quote_id: id,
+        } as never);
+        if (error) throw error;
+        return;
+      }
+
       const { error } = await supabase.from("quotes").update({ status }).eq("id", id);
       if (error) throw error;
-      if (status === "accepted") {
-        const q = (quotes.data ?? []).find((x) => x.id === id);
-        const { error: e2 } = await supabase
-          .from("service_requests")
-          .update({ status: "confirmed" as never, price_estimate: q?.amount ?? null })
-          .eq("id", requestId);
-        if (e2) throw e2;
-      }
     },
     onSuccess: () => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["request", requestId] });
     },
-    onError: () => toast.error("Não foi possível atualizar o orçamento."),
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("under analysis") || message.includes("análise")) {
+        toast.error("O pedido precisa estar em análise antes de aceitar o orçamento.");
+      } else {
+        toast.error("Não foi possível atualizar o orçamento.");
+      }
+    },
   });
 
   return (
