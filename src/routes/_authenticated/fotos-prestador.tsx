@@ -45,7 +45,7 @@ function ProviderPhotosPage() {
     if (!provider.data || !user || !provider.data.avatar_url) return;
     const old = provider.data.avatar_url;
     const { error } = await supabase.from("providers").update({ avatar_url: null }).eq("id", provider.data.id).eq("user_id", user.id);
-    if (error) return toast.error("Não foi possível remover a foto.");
+    if (error) { toast.error("Não foi possível remover a foto."); return; }
     const marker = "/storage/v1/object/public/avatars/";
     const path = old.split(marker)[1];
     if (path) await supabase.storage.from("avatars").remove([path]);

@@ -20,7 +20,7 @@ export function RequestPhotoUploader({ requestId, userId, photos }: { requestId:
 
   async function addFiles(files: FileList | null) {
     if (!files?.length) return;
-    if (photos.length + files.length > 6) return toast.error("Você pode adicionar no máximo 6 fotos.");
+    if (photos.length + files.length > 6) { toast.error("Você pode adicionar no máximo 6 fotos."); return; }
     setBusy(true);
     try {
       const next = [...photos];
@@ -37,7 +37,7 @@ export function RequestPhotoUploader({ requestId, userId, photos }: { requestId:
   async function removePhoto(path: string) {
     const next = photos.filter((photo) => photo !== path);
     const { error } = await supabase.from("service_requests").update({ photos: next }).eq("id", requestId).eq("client_id", userId);
-    if (error) return toast.error("Não foi possível remover a foto.");
+    if (error) { toast.error("Não foi possível remover a foto."); return; }
     await supabase.storage.from("service-request-photos").remove([path]);
     window.location.reload();
   }

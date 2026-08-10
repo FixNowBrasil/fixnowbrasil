@@ -96,13 +96,13 @@ export function ClientSchedulePicker({
       const current = new Date(today);
       current.setDate(today.getDate() + index);
       return current;
-    }).filter((current) => schedule.weekly[DAYS[current.getDay()]]?.enabled);
+    }).filter((current) => schedule.weekly[DAYS[current.getDay()]!]?.enabled);
   }, [schedule]);
 
   const slots = useMemo(() => {
     if (!date || !schedule) return [] as string[];
     const currentDate = localDateTime(date, "12:00");
-    const config = schedule.weekly[DAYS[currentDate.getDay()]];
+    const config = schedule.weekly[DAYS[currentDate.getDay()]!];
     if (!config?.enabled) return [] as string[];
     const result: string[] = [];
     const now = new Date();
