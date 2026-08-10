@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { ProviderPhotoGallery } from "@/components/ProviderPhotoGallery";
 import { Button } from "@/components/ui/button";
-import { uploadProviderPhoto } from "@/lib/photo-upload";
+import { uploadProviderPhoto, storagePathFromUrl } from "@/lib/photo-upload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
