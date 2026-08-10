@@ -21,7 +21,11 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Encontre e contrate profissionais de confiança para resolver o que você precisa hoje.",
       },
+      { property: "og:url", content: "https://fixnowbrasil.lovable.app/" },
+      { property: "og:image", content: "https://fixnowbrasil.lovable.app/og-fixnow.jpg" },
+      { name: "twitter:image", content: "https://fixnowbrasil.lovable.app/og-fixnow.jpg" },
     ],
+    links: [{ rel: "canonical", href: "https://fixnowbrasil.lovable.app/" }],
   }),
   component: Home,
 });
