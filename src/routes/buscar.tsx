@@ -55,6 +55,7 @@ function BuscarPage() {
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-6">
+        <h1 className="font-display text-2xl font-extrabold">Buscar serviços e profissionais</h1>
         <form
           onSubmit={(e) => {
             e.preventDefault();

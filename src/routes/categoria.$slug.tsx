@@ -6,17 +6,36 @@ import { CardSkeleton, EmptyState, ProviderCard, ServiceCard } from "@/component
 import { allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
 
 export const Route = createFileRoute("/categoria/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Serviços de ${params.slug.replace(/-/g, " ")} — FixNow` },
-      {
-        name: "description",
-        content: `Profissionais e serviços da categoria ${params.slug.replace(/-/g, " ")} disponíveis perto de você no FixNow.`,
-      },
-      { property: "og:title", content: `Categoria ${params.slug.replace(/-/g, " ")} — FixNow` },
-      { property: "og:description", content: "Veja profissionais avaliados e solicite seu serviço." },
-    ],
-  }),
+  head: ({ params }) => {
+    const label = params.slug.replace(/-/g, " ");
+    const url = `https://fixnowbrasil.lovable.app/categoria/${params.slug}`;
+    return {
+      meta: [
+        { title: `Serviços de ${label} — FixNow` },
+        {
+          name: "description",
+          content: `Profissionais e serviços da categoria ${label} disponíveis perto de você no FixNow.`,
+        },
+        { property: "og:title", content: `Categoria ${label} — FixNow` },
+        { property: "og:description", content: "Veja profissionais avaliados e solicite seu serviço." },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: `Serviços de ${label}`,
+            description: `Lista de serviços e profissionais de ${label} no FixNow.`,
+            url,
+            isPartOf: { "@id": "https://fixnowbrasil.lovable.app/#website" },
+          }),
+        },
+      ],
+    };
+  },
   component: CategoriaPage,
 });
 

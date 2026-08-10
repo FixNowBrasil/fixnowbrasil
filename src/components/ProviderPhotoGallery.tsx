@@ -12,7 +12,7 @@ export function ProviderPhotoGallery({ providerId, userId, photos }: { providerI
 
   async function add(files: FileList | null) {
     if (!files?.length) return;
-    if (items.length + files.length > 8) return toast.error("Você pode adicionar até 8 fotos de trabalhos.");
+    if (items.length + files.length > 8) { toast.error("Você pode adicionar até 8 fotos de trabalhos."); return; }
     setBusy(true);
     try {
       const urls: string[] = [];
@@ -29,7 +29,7 @@ export function ProviderPhotoGallery({ providerId, userId, photos }: { providerI
   async function remove(url: string) {
     const next = items.filter((item) => item !== url);
     const { error } = await supabase.from("providers").update({ work_photos: next }).eq("id", providerId).eq("user_id", userId);
-    if (error) return toast.error("Não foi possível remover a foto.");
+    if (error) { toast.error("Não foi possível remover a foto."); return; }
     const marker = `/storage/v1/object/public/provider-work-photos/`;
     const path = url.split(marker)[1];
     if (path) await supabase.storage.from("provider-work-photos").remove([path]);

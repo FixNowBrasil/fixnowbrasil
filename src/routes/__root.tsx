@@ -78,17 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FixNow — Precisou? FixNow." },
+      { title: "FixNow" },
       {
         name: "description",
         content:
           "Encontre eletricistas, encanadores, montadores e mais perto de você. Contratar serviço ficou tão fácil quanto pedir comida.",
       },
-      { property: "og:title", content: "FixNow — Precisou? FixNow." },
-      {
-        property: "og:description",
-        content: "Marketplace de serviços do dia a dia: encontre, contrate e acompanhe profissionais.",
-      },
+      { property: "og:site_name", content: "FixNow" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -101,6 +97,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://fixnowbrasil.lovable.app/#organization",
+              name: "FixNow",
+              url: "https://fixnowbrasil.lovable.app",
+              logo: "https://fixnowbrasil.lovable.app/og-fixnow.jpg",
+              slogan: "Precisou? FixNow.",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://fixnowbrasil.lovable.app/#website",
+              name: "FixNow",
+              url: "https://fixnowbrasil.lovable.app",
+              inLanguage: "pt-BR",
+              publisher: { "@id": "https://fixnowbrasil.lovable.app/#organization" },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://fixnowbrasil.lovable.app/buscar?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ],
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
