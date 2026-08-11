@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 let loader: Promise<typeof google.maps> | null = null;
 
 declare global {
