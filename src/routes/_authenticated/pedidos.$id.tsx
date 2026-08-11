@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
 import { QuotePanel, RequestChat } from "@/components/request-extras";
 import { ClientSchedulePicker } from "@/components/ClientSchedulePicker";
+import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
+import { ShareLocationBanner } from "@/components/ShareLocationBanner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/pedidos/$id")({
