@@ -392,6 +392,54 @@ export type Database = {
           },
         ]
       }
+      request_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          heading: number | null
+          lat: number
+          lng: number
+          provider_id: string
+          request_id: string
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          heading?: number | null
+          lat: number
+          lng: number
+          provider_id: string
+          request_id: string
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          heading?: number | null
+          lat?: number
+          lng?: number
+          provider_id?: string
+          request_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_locations_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_locations_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           author_name: string
@@ -456,6 +504,8 @@ export type Database = {
           client_id: string
           created_at: string
           description: string
+          dest_lat: number | null
+          dest_lng: number | null
           id: string
           need: string | null
           photos: string[]
@@ -473,6 +523,8 @@ export type Database = {
           client_id: string
           created_at?: string
           description?: string
+          dest_lat?: number | null
+          dest_lng?: number | null
           id?: string
           need?: string | null
           photos?: string[]
@@ -490,6 +542,8 @@ export type Database = {
           client_id?: string
           created_at?: string
           description?: string
+          dest_lat?: number | null
+          dest_lng?: number | null
           id?: string
           need?: string | null
           photos?: string[]
