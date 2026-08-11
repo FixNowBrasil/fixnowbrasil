@@ -4,6 +4,7 @@ let loader: Promise<typeof google.maps> | null = null;
 declare global {
   interface Window {
     __fixnowMapsReady?: () => void;
+    google: typeof globalThis.google;
   }
 }
 
