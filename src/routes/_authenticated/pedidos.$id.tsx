@@ -188,6 +188,21 @@ function PedidoPage() {
           providerId={myProvider.data?.id ?? null}
           role={isRequestProvider ? "provider" : "client"}
         />
+        {req.status === "on_the_way" && (
+          <LiveTrackingPanel
+            requestId={req.id}
+            address={req.address}
+            providerName={req.providers?.name ?? null}
+          />
+        )}
+        {isRequestProvider && (
+          <ShareLocationBanner
+            requestId={req.id}
+            providerId={myProvider.data?.id ?? null}
+            enabled={req.status === "on_the_way"}
+          />
+        )}
+
         {canSchedule && req.providers && user && (
           <ClientSchedulePicker
             requestId={req.id}
