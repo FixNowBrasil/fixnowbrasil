@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ShareLocationBanner } from "@/components/ShareLocationBanner";
 import {
   REQUEST_STEPS,
   allServicesQuery,
