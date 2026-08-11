@@ -574,7 +574,16 @@ export function PainelPage() {
                                 }).format(new Date(r.scheduled_at))}
                               </p>
                             )}
+                            {r.status === "on_the_way" && (
+                              <ShareLocationBanner
+                                requestId={r.id}
+                                providerId={p.id}
+                                enabled
+                                className="mt-2"
+                              />
+                            )}
                           </div>
+
                           <span className="w-fit rounded-full bg-accent px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
                             {REQUEST_STEPS.find((s) => s.key === r.status)?.label ?? r.status}
                           </span>
