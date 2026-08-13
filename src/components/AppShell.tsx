@@ -86,11 +86,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4">
-          <Link to="/" className="shrink-0">
+          <Link to={inProviderMode ? "/painel" : "/"} className="shrink-0">
             <FixNowLogo />
           </Link>
           <nav className="ml-4 hidden items-center gap-1 md:flex">
-            {NAV.slice(0, 4).map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -100,31 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            {isProvider && (
-              <>
-                <Link
-                  to="/painel"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <Briefcase className="mr-1 inline h-4 w-4" />
-                  Painel
-                </Link>
-                <Link
-                  to="/agenda"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <CalendarDays className="mr-1 inline h-4 w-4" />
-                  Agenda
-                </Link>
-                <Link
-                  to="/fotos-prestador"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <Images className="mr-1 inline h-4 w-4" />
-                  Fotos
-                </Link>
-              </>
-            )}
+
             {isAdmin && (
               <Link
                 to="/admin"
