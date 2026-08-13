@@ -8,6 +8,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { RequestPhotoSlot } from "@/components/RequestPhotoSlot";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useAppMode } from "@/hooks/useAppMode";
+
 
 export function FixNowLogo({ className }: { className?: string }) {
   return (
