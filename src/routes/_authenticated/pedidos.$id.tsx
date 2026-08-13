@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
 import { QuotePanel, RequestChat } from "@/components/request-extras";
+import { PaymentPanel } from "@/components/PaymentPanel";
 import { ClientSchedulePicker } from "@/components/ClientSchedulePicker";
 import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
 import { ShareLocationBanner } from "@/components/ShareLocationBanner";
@@ -187,6 +188,12 @@ function PedidoPage() {
           requestId={req.id}
           providerId={myProvider.data?.id ?? null}
           role={isRequestProvider ? "provider" : "client"}
+        />
+        <PaymentPanel
+          requestId={req.id}
+          role={isRequestProvider ? "provider" : "client"}
+          providerName={req.providers?.name ?? null}
+          serviceName={req.services?.name ?? req.need ?? null}
         />
         {req.status === "on_the_way" && (
           <LiveTrackingPanel
