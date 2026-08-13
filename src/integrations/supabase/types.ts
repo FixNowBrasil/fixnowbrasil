@@ -186,6 +186,82 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          external_reference: string | null
+          failure_reason: string | null
+          id: string
+          method: string | null
+          paid_at: string | null
+          provider_id: string
+          quote_id: string
+          refunded_at: string | null
+          released_at: string | null
+          request_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          external_reference?: string | null
+          failure_reason?: string | null
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          provider_id: string
+          quote_id: string
+          refunded_at?: string | null
+          released_at?: string | null
+          request_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          external_reference?: string | null
+          failure_reason?: string | null
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          provider_id?: string
+          quote_id?: string
+          refunded_at?: string | null
+          released_at?: string | null
+          request_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -640,6 +716,58 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_payment: {
+        Args: { p_external_reference?: string; p_payment_id: string }
+        Returns: {
+          amount: number
+          client_id: string
+          created_at: string
+          external_reference: string | null
+          failure_reason: string | null
+          id: string
+          method: string | null
+          paid_at: string | null
+          provider_id: string
+          quote_id: string
+          refunded_at: string | null
+          released_at: string | null
+          request_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_payment_for_quote: {
+        Args: { p_method?: string; p_quote_id: string }
+        Returns: {
+          amount: number
+          client_id: string
+          created_at: string
+          external_reference: string | null
+          failure_reason: string | null
+          id: string
+          method: string | null
+          paid_at: string | null
+          provider_id: string
+          quote_id: string
+          refunded_at: string | null
+          released_at: string | null
+          request_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role:
         | {
             Args: {
@@ -659,6 +787,7 @@ export type Database = {
     }
     Enums: {
       app_role: "client" | "provider" | "admin"
+      payment_status: "pending" | "paid" | "released" | "refunded" | "failed"
       request_status:
         | "sent"
         | "analyzing"
@@ -796,6 +925,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["client", "provider", "admin"],
+      payment_status: ["pending", "paid", "released", "refunded", "failed"],
       request_status: [
         "sent",
         "analyzing",
