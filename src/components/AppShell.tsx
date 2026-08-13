@@ -163,8 +163,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-5">
-          {NAV.map((item) => {
+        <div className={cn("mx-auto grid max-w-md", inProviderMode ? "grid-cols-4" : "grid-cols-5")}>
+          {navItems.map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
