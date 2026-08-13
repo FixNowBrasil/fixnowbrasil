@@ -30,11 +30,19 @@ const NAV = [
   { to: "/perfil", label: "Perfil", icon: User, exact: false },
 ] as const;
 
+const PROVIDER_NAV = [
+  { to: "/painel", label: "Painel", icon: Briefcase, exact: false },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays, exact: false },
+  { to: "/fotos-prestador", label: "Fotos", icon: Images, exact: false },
+  { to: "/perfil", label: "Perfil", icon: User, exact: false },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, isAdmin, isProvider } = useAuth();
+  const { user, isAdmin } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { mode, setMode } = useAppMode();
 
   const providerProfile = useQuery({
     queryKey: ["my-provider", user?.id],
@@ -51,23 +59,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const hasProviderProfile = !!providerProfile.data;
-  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda") || pathname.startsWith("/fotos-prestador");
+  const inProviderMode = mode === "provider";
+  const navItems = inProviderMode ? PROVIDER_NAV : NAV;
   const requestId = pathname.startsWith("/pedidos/") ? pathname.split("/")[2] : null;
 
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
+    setMode("client");
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
 
   function switchMode() {
     if (inProviderMode) {
+      setMode("client");
       navigate({ to: "/" });
       return;
     }
+    setMode("provider");
     navigate({ to: hasProviderProfile ? "/painel" : "/cadastro-prestador" });
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
