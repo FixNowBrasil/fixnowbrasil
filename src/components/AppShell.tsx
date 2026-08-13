@@ -8,6 +8,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { RequestPhotoSlot } from "@/components/RequestPhotoSlot";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useAppMode } from "@/hooks/useAppMode";
+
 
 export function FixNowLogo({ className }: { className?: string }) {
   return (
@@ -30,11 +32,19 @@ const NAV = [
   { to: "/perfil", label: "Perfil", icon: User, exact: false },
 ] as const;
 
+const PROVIDER_NAV = [
+  { to: "/painel", label: "Painel", icon: Briefcase, exact: false },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays, exact: false },
+  { to: "/fotos-prestador", label: "Fotos", icon: Images, exact: false },
+  { to: "/perfil", label: "Perfil", icon: User, exact: false },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, isAdmin, isProvider } = useAuth();
+  const { user, isAdmin } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { mode, setMode } = useAppMode();
 
   const providerProfile = useQuery({
     queryKey: ["my-provider", user?.id],
@@ -51,33 +61,38 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   const hasProviderProfile = !!providerProfile.data;
-  const inProviderMode = pathname.startsWith("/painel") || pathname.startsWith("/cadastro-prestador") || pathname.startsWith("/agenda") || pathname.startsWith("/fotos-prestador");
+  const inProviderMode = mode === "provider";
+  const navItems = inProviderMode ? PROVIDER_NAV : NAV;
   const requestId = pathname.startsWith("/pedidos/") ? pathname.split("/")[2] : null;
 
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
+    setMode("client");
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
 
   function switchMode() {
     if (inProviderMode) {
+      setMode("client");
       navigate({ to: "/" });
       return;
     }
+    setMode("provider");
     navigate({ to: hasProviderProfile ? "/painel" : "/cadastro-prestador" });
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4">
-          <Link to="/" className="shrink-0">
+          <Link to={inProviderMode ? "/painel" : "/"} className="shrink-0">
             <FixNowLogo />
           </Link>
           <nav className="ml-4 hidden items-center gap-1 md:flex">
-            {NAV.slice(0, 4).map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -87,31 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            {isProvider && (
-              <>
-                <Link
-                  to="/painel"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <Briefcase className="mr-1 inline h-4 w-4" />
-                  Painel
-                </Link>
-                <Link
-                  to="/agenda"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <CalendarDays className="mr-1 inline h-4 w-4" />
-                  Agenda
-                </Link>
-                <Link
-                  to="/fotos-prestador"
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
-                >
-                  <Images className="mr-1 inline h-4 w-4" />
-                  Fotos
-                </Link>
-              </>
-            )}
+
             {isAdmin && (
               <Link
                 to="/admin"
@@ -172,8 +163,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-5">
-          {NAV.map((item) => {
+        <div className={cn("mx-auto grid max-w-md", inProviderMode ? "grid-cols-4" : "grid-cols-5")}>
+          {navItems.map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
