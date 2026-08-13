@@ -188,6 +188,12 @@ function PedidoPage() {
           providerId={myProvider.data?.id ?? null}
           role={isRequestProvider ? "provider" : "client"}
         />
+        <PaymentPanel
+          requestId={req.id}
+          role={isRequestProvider ? "provider" : "client"}
+          providerName={req.providers?.name ?? null}
+          serviceName={req.services?.name ?? req.need ?? null}
+        />
         {req.status === "on_the_way" && (
           <LiveTrackingPanel
             requestId={req.id}
