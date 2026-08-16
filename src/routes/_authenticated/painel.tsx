@@ -260,9 +260,18 @@ export function PainelPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["provider-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["provider-paid-requests"] });
       queryClient.invalidateQueries({ queryKey: ["request"] });
     },
-    onError: () => toast.error("Não foi possível atualizar o status."),
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(
+        message.includes("Payment must be confirmed")
+          ? "O cliente ainda não pagou este serviço."
+          : "Não foi possível atualizar o status.",
+      );
+    },
+
   });
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
