@@ -65,8 +65,17 @@ export function PaymentPanel({
 
   const amount = Number(pay?.amount ?? accepted?.amount ?? 0);
 
+  const awaitingClientPayment =
+    role === "client" && (!pay || pay.status === "pending" || pay.status === "failed");
+
   return (
-    <section className="surface-card space-y-3 p-5">
+    <section
+      className={cn(
+        "surface-card space-y-3 p-5",
+        awaitingClientPayment && "ring-2 ring-primary",
+      )}
+    >
+
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-display text-base font-bold">Pagamento</h2>
         <span
