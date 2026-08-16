@@ -570,6 +570,9 @@ export function PainelPage() {
                         services: { name: string } | null;
                       };
                       const action = PROVIDER_ACTIONS[r.status];
+                      const awaitingPayment =
+                        r.status === "confirmed" && !paidRequests.data?.has(r.id);
+
                       return (
                         <li
                           key={r.id}
