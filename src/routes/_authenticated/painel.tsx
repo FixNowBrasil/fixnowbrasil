@@ -137,6 +137,22 @@ export function PainelPage() {
     },
   });
 
+  const paidRequests = useQuery({
+    queryKey: ["provider-paid-requests", p?.id],
+    enabled: !!p?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("request_id, status")
+        .eq("provider_id", p!.id)
+        .in("status", ["paid", "released"]);
+      if (error) throw error;
+      return new Set((data ?? []).map((row) => row.request_id as string));
+    },
+  });
+
+
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("nome");
