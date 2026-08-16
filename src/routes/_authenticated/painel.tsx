@@ -137,6 +137,22 @@ export function PainelPage() {
     },
   });
 
+  const paidRequests = useQuery({
+    queryKey: ["provider-paid-requests", p?.id],
+    enabled: !!p?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("request_id, status")
+        .eq("provider_id", p!.id)
+        .in("status", ["paid", "released"]);
+      if (error) throw error;
+      return new Set((data ?? []).map((row) => row.request_id as string));
+    },
+  });
+
+
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("nome");
@@ -244,9 +260,18 @@ export function PainelPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["provider-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["provider-paid-requests"] });
       queryClient.invalidateQueries({ queryKey: ["request"] });
     },
-    onError: () => toast.error("Não foi possível atualizar o status."),
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(
+        message.includes("Payment must be confirmed")
+          ? "O cliente ainda não pagou este serviço."
+          : "Não foi possível atualizar o status.",
+      );
+    },
+
   });
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -554,6 +579,9 @@ export function PainelPage() {
                         services: { name: string } | null;
                       };
                       const action = PROVIDER_ACTIONS[r.status];
+                      const awaitingPayment =
+                        r.status === "confirmed" && !paidRequests.data?.has(r.id);
+
                       return (
                         <li
                           key={r.id}
@@ -589,16 +617,25 @@ export function PainelPage() {
                             {REQUEST_STEPS.find((s) => s.key === r.status)?.label ?? r.status}
                           </span>
                           <div className="flex flex-wrap gap-2">
-                            {action && (
-                              <Button
-                                size="sm"
-                                className="font-bold"
-                                disabled={setStatus.isPending}
-                                onClick={() => setStatus.mutate({ id: r.id, status: action.next })}
-                              >
-                                {action.label}
-                              </Button>
+                            {awaitingPayment ? (
+                              <span className="w-fit rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-bold text-warning">
+                                Aguardando pagamento do cliente
+                              </span>
+                            ) : (
+                              action && (
+                                <Button
+                                  size="sm"
+                                  className="font-bold"
+                                  disabled={setStatus.isPending}
+                                  onClick={() =>
+                                    setStatus.mutate({ id: r.id, status: action.next })
+                                  }
+                                >
+                                  {action.label}
+                                </Button>
+                              )
                             )}
+
                             {r.status === "analyzing" && (
                               <Button size="sm" variant="outline" className="font-bold" asChild>
                                 <Link to="/pedidos/$id" params={{ id: r.id }}>

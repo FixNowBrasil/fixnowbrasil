@@ -716,6 +716,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_quote: {
+        Args: { p_quote_id: string }
+        Returns: {
+          amount: number
+          created_at: string
+          estimated_time: string | null
+          id: string
+          message: string | null
+          provider_id: string
+          request_id: string
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "quotes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       confirm_payment: {
         Args: { p_external_reference?: string; p_payment_id: string }
         Returns: {
@@ -784,6 +804,36 @@ export type Database = {
             Returns: boolean
           }
       is_blocked: { Args: { _user_id: string }; Returns: boolean }
+      submit_review: {
+        Args: {
+          p_author_name?: string
+          p_comment?: string
+          p_punctuality: number
+          p_quality: number
+          p_rating: number
+          p_request_id: string
+          p_service: number
+        }
+        Returns: {
+          author_name: string
+          client_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          provider_id: string
+          punctuality: number
+          quality: number
+          rating: number
+          request_id: string | null
+          service: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "reviews"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "client" | "provider" | "admin"
