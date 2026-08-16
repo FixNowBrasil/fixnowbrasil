@@ -107,11 +107,17 @@ export function PaymentPanel({
         </div>
       </dl>
 
-      {role === "client" && (!pay || pay.status === "pending" || pay.status === "failed") && (
-        <Button className="w-full font-extrabold" onClick={() => setOpen(true)}>
-          Pagar {brl(amount)}
-        </Button>
+      {awaitingClientPayment && (
+        <>
+          <p className="text-sm font-semibold text-muted-foreground">
+            Próximo passo: pague para o profissional poder se deslocar até você.
+          </p>
+          <Button className="w-full font-extrabold" onClick={() => setOpen(true)}>
+            Pagar {brl(amount)}
+          </Button>
+        </>
       )}
+
 
       {role === "provider" && (
         <p className="text-sm text-muted-foreground">
