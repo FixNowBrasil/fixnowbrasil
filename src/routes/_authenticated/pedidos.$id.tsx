@@ -263,8 +263,11 @@ function PedidoPage() {
           </p>
         </section>
         {req.status === "completed" && isRequestClient && (
-          <section className="surface-card space-y-4 p-5">
+          <section className="surface-card space-y-4 p-5 ring-2 ring-primary">
             <h2 className="font-display text-base font-bold">Como foi seu atendimento?</h2>
+            <p className="text-sm text-muted-foreground">
+              Último passo: avalie o serviço para concluir o pedido.
+            </p>
             <StarPicker label="Nota geral" value={rating} onChange={setRating} />
             <StarPicker label="Pontualidade" value={punctuality} onChange={setPunctuality} />
             <StarPicker label="Qualidade" value={quality} onChange={setQuality} />

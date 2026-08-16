@@ -130,9 +130,13 @@ export function QuotePanel({
       const { error } = await supabase.from("quotes").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ["request", requestId] });
+      queryClient.invalidateQueries({ queryKey: ["payment", requestId] });
+      if (variables.status === "accepted") {
+        toast.success("Orçamento aceito! Agora finalize o pagamento.");
+      }
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "";
