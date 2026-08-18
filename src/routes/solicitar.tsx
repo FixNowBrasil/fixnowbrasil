@@ -1,22 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
+import { ProblemStep } from "@/components/request-flow/ProblemStep";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  NEEDS_BY_CATEGORY,
-  WHEN_OPTIONS,
-  allServicesQuery,
-  categoriesQuery,
-  providersQuery,
-} from "@/lib/fixnow";
+import { WHEN_OPTIONS, allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
+import { useRequestDraft } from "@/lib/request-draft";
 
 type SearchParams = { service?: string | undefined; provider?: string | undefined };
 
@@ -39,7 +34,7 @@ export const Route = createFileRoute("/solicitar")({
   component: SolicitarPage,
 });
 
-const STEPS = ["Necessidade", "Detalhes", "Quando", "Endereço", "Profissionais"];
+const STEPS = ["O problema", "Endereço", "Quando", "Profissionais"];
 
 function SolicitarPage() {
   const search = Route.useSearch();
@@ -50,28 +45,37 @@ function SolicitarPage() {
   const services = useQuery(allServicesQuery);
   const allProviders = useQuery(providersQuery());
 
-  const service = (services.data ?? []).find((s) => s.slug === search.service);
-  const preselected = (allProviders.data ?? []).find((p) => p.id === search.provider);
-  const category = (categories.data ?? []).find(
-    (c) => c.id === (service?.category_id ?? preselected?.category_id),
-  );
-
+  const { draft, update, problemError } = useRequestDraft();
   const [step, setStep] = useState(0);
-  const [need, setNeed] = useState("");
-  const [description, setDescription] = useState("");
-  const [when, setWhen] = useState("now");
-  const [date, setDate] = useState("");
-  const [address, setAddress] = useState("");
+  const [showProblemError, setShowProblemError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const prefilled = useRef(false);
 
-  const needs = NEEDS_BY_CATEGORY[category?.slug ?? "outros"] ?? NEEDS_BY_CATEGORY['outros']!;
+  const preselected = (allProviders.data ?? []).find((p) => p.id === search.provider);
+
+  // Pré-seleção vinda de /categoria ou /prestador (uma única vez).
+  useEffect(() => {
+    if (prefilled.current) return;
+    const service = (services.data ?? []).find((s) => s.slug === search.service);
+    const categoryId = service?.category_id ?? preselected?.category_id ?? null;
+    if (!service && !categoryId) return;
+    prefilled.current = true;
+    update({
+      mode: "choose",
+      categoryId,
+      serviceId: service?.id ?? null,
+      need: service?.name ?? null,
+    });
+  }, [services.data, preselected, search.service, update]);
+
+  const category = (categories.data ?? []).find((c) => c.id === draft.categoryId);
 
   const matches = useMemo(() => {
     const list = allProviders.data ?? [];
     if (preselected) return [preselected];
-    if (category) return list.filter((p) => p.category_id === category.id);
+    if (draft.categoryId) return list.filter((p) => p.category_id === draft.categoryId);
     return list;
-  }, [allProviders.data, category, preselected]);
+  }, [allProviders.data, draft.categoryId, preselected]);
 
   async function createRequest(providerId: string) {
     if (!user) {
@@ -83,15 +87,17 @@ function SolicitarPage() {
     const { data, error } = await supabase
       .from("service_requests")
       .insert({
+        id: draft.draftId,
         client_id: user.id,
         provider_id: providerId,
-        service_id: service?.id ?? null,
-        category_id: category?.id ?? null,
-        need: need || null,
-        description,
-        when_option: when,
-        scheduled_at: when === "date" && date ? new Date(date).toISOString() : null,
-        address,
+        service_id: draft.serviceId,
+        category_id: draft.categoryId,
+        need: draft.need,
+        description: draft.description.trim() || draft.need || "Serviço solicitado pelo app",
+        photos: draft.photos,
+        when_option: draft.when,
+        scheduled_at: draft.when === "date" && draft.date ? new Date(draft.date).toISOString() : null,
+        address: draft.address,
         status: "sent",
       })
       .select("id")
@@ -106,17 +112,25 @@ function SolicitarPage() {
   }
 
   const canAdvance =
-    (step === 0 && !!need) ||
-    (step === 1 && description.trim().length >= 5) ||
-    (step === 2 && (when !== "date" || !!date)) ||
-    (step === 3 && address.trim().length >= 5);
+    (step === 0 && !problemError) ||
+    (step === 1 && draft.address.trim().length >= 5) ||
+    (step === 2 && (draft.when !== "date" || !!draft.date));
+
+  function handleContinue() {
+    if (step === 0 && problemError) {
+      setShowProblemError(true);
+      toast.error(problemError);
+      return;
+    }
+    setStep(step + 1);
+  }
 
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-primary">
-            {category?.emoji} {service?.name ?? category?.name ?? "Nova solicitação"}
+            {category?.emoji} {category?.name ?? "Nova solicitação"}
           </p>
           <div className="mt-3 flex gap-1.5">
             {STEPS.map((s, i) => (
@@ -133,80 +147,15 @@ function SolicitarPage() {
         </div>
 
         {step === 0 && (
-          <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">O que você precisa?</h1>
-            <div className="grid gap-2">
-              {needs.map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setNeed(n)}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
-                    need === n
-                      ? "border-primary bg-accent text-accent-foreground"
-                      : "border-border bg-card hover:bg-muted"
-                  }`}
-                >
-                  {n}
-                  {need === n && <Check className="h-4 w-4" />}
-                </button>
-              ))}
-            </div>
-          </section>
+          <ProblemStep draft={draft} update={update} error={problemError} showError={showProblemError} />
         )}
 
         {step === 1 && (
           <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">Conte um pouco mais sobre o serviço</h1>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={1000}
-              rows={6}
-              placeholder="Ex.: TV de 55 polegadas, parede de drywall, já tenho o suporte."
-              className="rounded-xl text-base"
-            />
-            <p className="text-xs text-muted-foreground">
-              Quanto mais detalhes, mais preciso será o orçamento do profissional.
-            </p>
-          </section>
-        )}
-
-        {step === 2 && (
-          <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">Quando você precisa?</h1>
-            <div className="grid grid-cols-2 gap-2">
-              {WHEN_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  onClick={() => setWhen(o.value)}
-                  className={`rounded-xl border px-4 py-3 text-sm font-bold transition ${
-                    when === o.value
-                      ? "border-primary bg-accent text-accent-foreground"
-                      : "border-border bg-card hover:bg-muted"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-            {when === "date" && (
-              <Input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="rounded-xl"
-                aria-label="Data e hora do serviço"
-              />
-            )}
-          </section>
-        )}
-
-        {step === 3 && (
-          <section className="surface-card space-y-3 p-5">
             <h1 className="font-display text-xl font-bold">Qual é o endereço?</h1>
             <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={draft.address}
+              onChange={(e) => update({ address: e.target.value })}
               maxLength={200}
               placeholder="Rua, número, bairro e cidade"
               className="h-12 rounded-xl text-base"
@@ -218,7 +167,37 @@ function SolicitarPage() {
           </section>
         )}
 
-        {step === 4 && (
+        {step === 2 && (
+          <section className="surface-card space-y-3 p-5">
+            <h1 className="font-display text-xl font-bold">Quando você precisa?</h1>
+            <div className="grid grid-cols-2 gap-2">
+              {WHEN_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  onClick={() => update({ when: o.value })}
+                  className={`rounded-xl border px-4 py-3 text-sm font-bold transition ${
+                    draft.when === o.value
+                      ? "border-primary bg-accent text-accent-foreground"
+                      : "border-border bg-card hover:bg-muted"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            {draft.when === "date" && (
+              <Input
+                type="datetime-local"
+                value={draft.date}
+                onChange={(e) => update({ date: e.target.value })}
+                className="rounded-xl"
+                aria-label="Data e hora do serviço"
+              />
+            )}
+          </section>
+        )}
+
+        {step === 3 && (
           <section className="space-y-4">
             <h1 className="font-display text-xl font-bold">Profissionais compatíveis</h1>
             {allProviders.isLoading ? (
@@ -255,14 +234,14 @@ function SolicitarPage() {
           >
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
-          {step < 4 && (
+          {step < 3 && (
             <Button
               size="lg"
               className="font-extrabold"
-              disabled={!canAdvance}
-              onClick={() => setStep(step + 1)}
+              disabled={step > 0 && !canAdvance}
+              onClick={handleContinue}
             >
-              {step === 3 ? "Encontrar profissionais" : "Continuar"}
+              {step === 2 ? "Encontrar profissionais" : "Continuar"}
               <ArrowRight className="h-4 w-4" />
             </Button>
           )}
