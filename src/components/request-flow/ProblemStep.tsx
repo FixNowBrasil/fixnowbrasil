@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Check, ChevronRight, ImagePlus, Loader2, MessageSquareText, Search, X } from "lucide-react";
-import { toast } from "sonner";
+import { Check, ChevronRight, MessageSquareText, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
