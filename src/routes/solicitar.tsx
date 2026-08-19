@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
+import { AddressStep } from "@/components/request-flow/AddressStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
