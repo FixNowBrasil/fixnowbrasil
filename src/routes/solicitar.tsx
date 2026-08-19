@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
+import { AddressStep } from "@/components/request-flow/AddressStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ function SolicitarPage() {
   const { draft, update, problemError } = useRequestDraft();
   const [step, setStep] = useState(0);
   const [showProblemError, setShowProblemError] = useState(false);
+  const [showAddressError, setShowAddressError] = useState(false);
   const [saving, setSaving] = useState(false);
   const prefilled = useRef(false);
 
@@ -122,8 +124,14 @@ function SolicitarPage() {
       toast.error(problemError);
       return;
     }
+    if (step === 1 && !draft.address.trim()) {
+      setShowAddressError(true);
+      toast.error("Escolha ou cadastre um endereço para continuar.");
+      return;
+    }
     setStep(step + 1);
   }
+
 
   return (
     <AppShell>
@@ -150,22 +158,8 @@ function SolicitarPage() {
           <ProblemStep draft={draft} update={update} error={problemError} showError={showProblemError} />
         )}
 
-        {step === 1 && (
-          <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">Qual é o endereço?</h1>
-            <Input
-              value={draft.address}
-              onChange={(e) => update({ address: e.target.value })}
-              maxLength={200}
-              placeholder="Rua, número, bairro e cidade"
-              className="h-12 rounded-xl text-base"
-              aria-label="Endereço do serviço"
-            />
-            <p className="text-xs text-muted-foreground">
-              O endereço completo só é compartilhado depois que o profissional aceita.
-            </p>
-          </section>
-        )}
+        {step === 1 && <AddressStep draft={draft} update={update} showError={showAddressError} />}
+
 
         {step === 2 && (
           <section className="surface-card space-y-3 p-5">
