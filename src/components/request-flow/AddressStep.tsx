@@ -194,6 +194,7 @@ export function AddressStep({
               value={form.label}
               onChange={(e) => setForm({ ...form, label: e.target.value })}
               placeholder="Casa, Trabalho..."
+                aria-label="Nome do endereço"
               maxLength={40}
               className="h-11 rounded-xl"
             />
@@ -204,6 +205,7 @@ export function AddressStep({
                 value={form.zip}
                 onChange={(e) => setForm({ ...form, zip: e.target.value })}
                 placeholder="00000-000"
+                aria-label="CEP"
                 maxLength={9}
                 inputMode="numeric"
                 className="h-11 rounded-xl"
@@ -214,6 +216,7 @@ export function AddressStep({
                 value={form.number}
                 onChange={(e) => setForm({ ...form, number: e.target.value })}
                 placeholder="123"
+                aria-label="Número"
                 maxLength={10}
                 className="h-11 rounded-xl"
               />
@@ -224,6 +227,7 @@ export function AddressStep({
               value={form.street}
               onChange={(e) => setForm({ ...form, street: e.target.value })}
               placeholder="Rua Exemplo"
+                aria-label="Rua"
               maxLength={120}
               className="h-11 rounded-xl"
             />
@@ -233,6 +237,7 @@ export function AddressStep({
               value={form.complement}
               onChange={(e) => setForm({ ...form, complement: e.target.value })}
               placeholder="Apto 21, bloco B"
+                aria-label="Complemento"
               maxLength={80}
               className="h-11 rounded-xl"
             />
@@ -241,6 +246,7 @@ export function AddressStep({
             <Input
               value={form.neighborhood}
               onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
+              aria-label="Bairro"
               maxLength={80}
               className="h-11 rounded-xl"
             />
@@ -250,6 +256,7 @@ export function AddressStep({
               <Input
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
+                aria-label="Cidade"
                 maxLength={80}
                 className="h-11 rounded-xl"
               />
@@ -258,6 +265,7 @@ export function AddressStep({
               <Input
                 value={form.state}
                 onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase() })}
+                aria-label="Estado (UF)"
                 maxLength={2}
                 className="h-11 rounded-xl"
               />
