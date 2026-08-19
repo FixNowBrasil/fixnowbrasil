@@ -150,22 +150,8 @@ function SolicitarPage() {
           <ProblemStep draft={draft} update={update} error={problemError} showError={showProblemError} />
         )}
 
-        {step === 1 && (
-          <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">Qual é o endereço?</h1>
-            <Input
-              value={draft.address}
-              onChange={(e) => update({ address: e.target.value })}
-              maxLength={200}
-              placeholder="Rua, número, bairro e cidade"
-              className="h-12 rounded-xl text-base"
-              aria-label="Endereço do serviço"
-            />
-            <p className="text-xs text-muted-foreground">
-              O endereço completo só é compartilhado depois que o profissional aceita.
-            </p>
-          </section>
-        )}
+        {step === 1 && <AddressStep draft={draft} update={update} showError={showAddressError} />}
+
 
         {step === 2 && (
           <section className="surface-card space-y-3 p-5">
