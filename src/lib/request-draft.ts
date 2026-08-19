@@ -7,6 +7,26 @@ import { useCallback, useMemo, useState } from "react";
 
 export type ProblemMode = "describe" | "choose";
 
+/** Endereço estruturado (base futura para distância/matching por cidade, UF e CEP). */
+export type DraftAddress = {
+  /** id em `addresses` quando o endereço veio de um salvo. */
+  id: string | null;
+  label: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zip: string;
+};
+
+export function formatAddress(a: DraftAddress): string {
+  const line1 = [a.street, a.number].filter(Boolean).join(", ");
+  const line2 = [a.neighborhood, [a.city, a.state].filter(Boolean).join("/")].filter(Boolean).join(" - ");
+  return [line1, a.complement, line2, a.zip].filter(Boolean).join(" — ");
+}
+
 export type RequestDraft = {
   /** id gerado no cliente: usado como pasta das fotos e como id do pedido ao final. */
   draftId: string;
@@ -16,11 +36,14 @@ export type RequestDraft = {
   serviceId: string | null;
   need: string | null;
   photos: string[];
-  /* PARTE 2/3 */
+  /* PARTE 2 */
   address: string;
+  addressParts: DraftAddress | null;
+  /* PARTE 3 */
   when: string;
   date: string;
 };
+
 
 export function createRequestDraft(partial: Partial<RequestDraft> = {}): RequestDraft {
   return {
