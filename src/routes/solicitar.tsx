@@ -123,8 +123,14 @@ function SolicitarPage() {
       toast.error(problemError);
       return;
     }
+    if (step === 1 && !draft.address.trim()) {
+      setShowAddressError(true);
+      toast.error("Escolha ou cadastre um endereço para continuar.");
+      return;
+    }
     setStep(step + 1);
   }
+
 
   return (
     <AppShell>
