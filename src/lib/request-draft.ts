@@ -55,6 +55,7 @@ export function createRequestDraft(partial: Partial<RequestDraft> = {}): Request
     need: null,
     photos: [],
     address: "",
+    addressParts: null,
     when: "now",
     date: "",
     ...partial,
