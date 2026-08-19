@@ -49,6 +49,7 @@ function SolicitarPage() {
   const { draft, update, problemError } = useRequestDraft();
   const [step, setStep] = useState(0);
   const [showProblemError, setShowProblemError] = useState(false);
+  const [showAddressError, setShowAddressError] = useState(false);
   const [saving, setSaving] = useState(false);
   const prefilled = useRef(false);
 
