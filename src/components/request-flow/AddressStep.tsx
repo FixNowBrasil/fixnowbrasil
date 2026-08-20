@@ -7,11 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  formatAddress,
-  type DraftAddress,
-  type RequestDraft,
-} from "@/lib/request-draft";
+import { formatAddress, type DraftAddress, type RequestDraft } from "@/lib/request-draft";
 
 type AddressRow = {
   id: string;
@@ -139,11 +135,14 @@ export function AddressStep({
 
       {!user && (
         <p className="rounded-xl bg-muted px-4 py-3 text-sm">
-          Entre na sua conta para usar endereços salvos — você também pode digitar um endereço agora.
+          Entre na sua conta para usar endereços salvos — você também pode digitar um endereço
+          agora.
         </p>
       )}
 
-      {addresses.isLoading && <p className="text-sm text-muted-foreground">Carregando endereços...</p>}
+      {addresses.isLoading && (
+        <p className="text-sm text-muted-foreground">Carregando endereços...</p>
+      )}
 
       {list.length > 0 && !creating && (
         <div className="grid gap-2">
@@ -155,7 +154,9 @@ export function AddressStep({
                 type="button"
                 onClick={() => pick(a)}
                 className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
-                  active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card hover:bg-muted"
+                  active
+                    ? "border-primary bg-accent text-accent-foreground"
+                    : "border-border bg-card hover:bg-muted"
                 }`}
               >
                 <Home className="mt-0.5 h-4 w-4 shrink-0" />
@@ -174,7 +175,9 @@ export function AddressStep({
                     {a.complement ? ` — ${a.complement}` : ""}
                   </span>
                   <span className="block text-xs text-muted-foreground">
-                    {[a.neighborhood, `${a.city}${a.state ? `/${a.state}` : ""}`].filter(Boolean).join(" - ")}
+                    {[a.neighborhood, `${a.city}${a.state ? `/${a.state}` : ""}`]
+                      .filter(Boolean)
+                      .join(" - ")}
                   </span>
                 </span>
               </button>
@@ -184,7 +187,12 @@ export function AddressStep({
       )}
 
       {!creating ? (
-        <Button type="button" variant="outline" className="w-full font-bold" onClick={() => setCreating(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full font-bold"
+          onClick={() => setCreating(true)}
+        >
           <Plus className="h-4 w-4" /> Adicionar novo endereço
         </Button>
       ) : (
@@ -194,7 +202,7 @@ export function AddressStep({
               value={form.label}
               onChange={(e) => setForm({ ...form, label: e.target.value })}
               placeholder="Casa, Trabalho..."
-                aria-label="Nome do endereço"
+              aria-label="Nome do endereço"
               maxLength={40}
               className="h-11 rounded-xl"
             />
@@ -227,7 +235,7 @@ export function AddressStep({
               value={form.street}
               onChange={(e) => setForm({ ...form, street: e.target.value })}
               placeholder="Rua Exemplo"
-                aria-label="Rua"
+              aria-label="Rua"
               maxLength={120}
               className="h-11 rounded-xl"
             />
@@ -237,7 +245,7 @@ export function AddressStep({
               value={form.complement}
               onChange={(e) => setForm({ ...form, complement: e.target.value })}
               placeholder="Apto 21, bloco B"
-                aria-label="Complemento"
+              aria-label="Complemento"
               maxLength={80}
               className="h-11 rounded-xl"
             />
@@ -288,7 +296,12 @@ export function AddressStep({
 
           <div className="flex gap-2">
             {list.length > 0 && (
-              <Button type="button" variant="ghost" className="font-bold" onClick={() => setCreating(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                className="font-bold"
+                onClick={() => setCreating(false)}
+              >
                 Cancelar
               </Button>
             )}
@@ -330,7 +343,9 @@ export function AddressStep({
       )}
 
       {showError && !draft.address && (
-        <p className="text-sm font-semibold text-destructive">Escolha ou cadastre um endereço para continuar.</p>
+        <p className="text-sm font-semibold text-destructive">
+          Escolha ou cadastre um endereço para continuar.
+        </p>
       )}
     </section>
   );
@@ -339,7 +354,9 @@ export function AddressStep({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</Label>
+      <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </Label>
       {children}
     </div>
   );

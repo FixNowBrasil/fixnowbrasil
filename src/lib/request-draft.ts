@@ -26,7 +26,9 @@ export type DraftAddress = {
 
 export function formatAddress(a: DraftAddress): string {
   const line1 = [a.street, a.number].filter(Boolean).join(", ");
-  const line2 = [a.neighborhood, [a.city, a.state].filter(Boolean).join("/")].filter(Boolean).join(" - ");
+  const line2 = [a.neighborhood, [a.city, a.state].filter(Boolean).join("/")]
+    .filter(Boolean)
+    .join(" - ");
   return [line1, a.complement, line2, a.zip].filter(Boolean).join(" — ");
 }
 
@@ -50,8 +52,6 @@ export type RequestDraft = {
   /** horário local no formato HH:MM (apenas quando `when === "scheduled"`). */
   time: string;
 };
-
-
 
 export function createRequestDraft(partial: Partial<RequestDraft> = {}): RequestDraft {
   return {

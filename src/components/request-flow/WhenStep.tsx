@@ -15,7 +15,9 @@ function buildTimes(dateKey: string) {
   const options: string[] = [];
   for (let m = 0; m < 24 * 60; m += 30) {
     if (m <= minMinutes) continue;
-    options.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+    options.push(
+      `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`,
+    );
   }
   return options;
 }
@@ -68,7 +70,10 @@ export function WhenStep({
       ) : (
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground" htmlFor="draft-date">
+            <label
+              className="text-xs font-bold uppercase tracking-wide text-muted-foreground"
+              htmlFor="draft-date"
+            >
               Data
             </label>
             <Input
@@ -83,9 +88,13 @@ export function WhenStep({
           </div>
 
           <div className="space-y-1.5">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Horário</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Horário
+            </span>
             {!draft.date ? (
-              <p className="text-sm text-muted-foreground">Escolha primeiro a data para ver os horários.</p>
+              <p className="text-sm text-muted-foreground">
+                Escolha primeiro a data para ver os horários.
+              </p>
             ) : times.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Não há mais horários hoje. Escolha outro dia.
@@ -144,7 +153,9 @@ function OptionCard({
       onClick={onClick}
       aria-pressed={active}
       className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
-        active ? "border-primary bg-accent text-accent-foreground" : "border-border bg-card hover:bg-muted"
+        active
+          ? "border-primary bg-accent text-accent-foreground"
+          : "border-border bg-card hover:bg-muted"
       }`}
     >
       <span className="mt-0.5 text-primary">{icon}</span>

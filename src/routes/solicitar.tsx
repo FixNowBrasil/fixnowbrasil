@@ -19,15 +19,16 @@ type SearchParams = { service?: string | undefined; provider?: string | undefine
 
 export const Route = createFileRoute("/solicitar")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
-    service: typeof search['service'] === "string" ? search['service'] : undefined,
-    provider: typeof search['provider'] === "string" ? search['provider'] : undefined,
+    service: typeof search["service"] === "string" ? search["service"] : undefined,
+    provider: typeof search["provider"] === "string" ? search["provider"] : undefined,
   }),
   head: () => ({
     meta: [
       { title: "Solicitar serviço — FixNow" },
       {
         name: "description",
-        content: "Conte o que você precisa, escolha data e endereço e encontre profissionais disponíveis.",
+        content:
+          "Conte o que você precisa, escolha data e endereço e encontre profissionais disponíveis.",
       },
       { property: "og:title", content: "Solicitar serviço — FixNow" },
       { property: "og:description", content: "Contrate um profissional em poucos passos." },
@@ -139,7 +140,6 @@ function SolicitarPage() {
     setStep(step + 1);
   }
 
-
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6">
@@ -162,13 +162,19 @@ function SolicitarPage() {
         </div>
 
         {step === 0 && (
-          <ProblemStep draft={draft} update={update} error={problemError} showError={showProblemError} />
+          <ProblemStep
+            draft={draft}
+            update={update}
+            error={problemError}
+            showError={showProblemError}
+          />
         )}
 
         {step === 1 && <AddressStep draft={draft} update={update} showError={showAddressError} />}
 
-
-        {step === 2 && <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />}
+        {step === 2 && (
+          <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
+        )}
 
         {step === 3 && (
           <section className="space-y-4">
