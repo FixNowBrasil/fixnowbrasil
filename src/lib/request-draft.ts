@@ -40,9 +40,14 @@ export type RequestDraft = {
   address: string;
   addressParts: DraftAddress | null;
   /* PARTE 3 */
-  when: string;
+  /** `when_option` de `service_requests`: "now" (o quanto antes) ou "scheduled". */
+  when: WhenOption;
+  /** data local no formato YYYY-MM-DD (apenas quando `when === "scheduled"`). */
   date: string;
+  /** horário local no formato HH:MM (apenas quando `when === "scheduled"`). */
+  time: string;
 };
+
 
 
 export function createRequestDraft(partial: Partial<RequestDraft> = {}): RequestDraft {
