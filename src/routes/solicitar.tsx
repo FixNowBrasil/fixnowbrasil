@@ -7,26 +7,28 @@ import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
 import { AddressStep } from "@/components/request-flow/AddressStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
+import { WhenStep } from "@/components/request-flow/WhenStep";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { WHEN_OPTIONS, allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
-import { useRequestDraft } from "@/lib/request-draft";
+import { allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
+import { draftScheduledAt, useRequestDraft } from "@/lib/request-draft";
 
 type SearchParams = { service?: string | undefined; provider?: string | undefined };
 
 export const Route = createFileRoute("/solicitar")({
   validateSearch: (search: Record<string, unknown>): SearchParams => ({
-    service: typeof search['service'] === "string" ? search['service'] : undefined,
-    provider: typeof search['provider'] === "string" ? search['provider'] : undefined,
+    service: typeof search["service"] === "string" ? search["service"] : undefined,
+    provider: typeof search["provider"] === "string" ? search["provider"] : undefined,
   }),
   head: () => ({
     meta: [
       { title: "Solicitar serviço — FixNow" },
       {
         name: "description",
-        content: "Conte o que você precisa, escolha data e endereço e encontre profissionais disponíveis.",
+        content:
+          "Conte o que você precisa, escolha data e endereço e encontre profissionais disponíveis.",
       },
       { property: "og:title", content: "Solicitar serviço — FixNow" },
       { property: "og:description", content: "Contrate um profissional em poucos passos." },
@@ -46,10 +48,11 @@ function SolicitarPage() {
   const services = useQuery(allServicesQuery);
   const allProviders = useQuery(providersQuery());
 
-  const { draft, update, problemError } = useRequestDraft();
+  const { draft, update, problemError, whenError } = useRequestDraft();
   const [step, setStep] = useState(0);
   const [showProblemError, setShowProblemError] = useState(false);
   const [showAddressError, setShowAddressError] = useState(false);
+  const [showWhenError, setShowWhenError] = useState(false);
   const [saving, setSaving] = useState(false);
   const prefilled = useRef(false);
 
@@ -98,7 +101,7 @@ function SolicitarPage() {
         description: draft.description.trim() || draft.need || "Serviço solicitado pelo app",
         photos: draft.photos,
         when_option: draft.when,
-        scheduled_at: draft.when === "date" && draft.date ? new Date(draft.date).toISOString() : null,
+        scheduled_at: draftScheduledAt(draft)?.toISOString() ?? null,
         address: draft.address,
         status: "sent",
       })
@@ -116,7 +119,7 @@ function SolicitarPage() {
   const canAdvance =
     (step === 0 && !problemError) ||
     (step === 1 && draft.address.trim().length >= 5) ||
-    (step === 2 && (draft.when !== "date" || !!draft.date));
+    (step === 2 && !whenError);
 
   function handleContinue() {
     if (step === 0 && problemError) {
@@ -129,9 +132,13 @@ function SolicitarPage() {
       toast.error("Escolha ou cadastre um endereço para continuar.");
       return;
     }
+    if (step === 2 && whenError) {
+      setShowWhenError(true);
+      toast.error(whenError);
+      return;
+    }
     setStep(step + 1);
   }
-
 
   return (
     <AppShell>
@@ -155,40 +162,18 @@ function SolicitarPage() {
         </div>
 
         {step === 0 && (
-          <ProblemStep draft={draft} update={update} error={problemError} showError={showProblemError} />
+          <ProblemStep
+            draft={draft}
+            update={update}
+            error={problemError}
+            showError={showProblemError}
+          />
         )}
 
         {step === 1 && <AddressStep draft={draft} update={update} showError={showAddressError} />}
 
-
         {step === 2 && (
-          <section className="surface-card space-y-3 p-5">
-            <h1 className="font-display text-xl font-bold">Quando você precisa?</h1>
-            <div className="grid grid-cols-2 gap-2">
-              {WHEN_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  onClick={() => update({ when: o.value })}
-                  className={`rounded-xl border px-4 py-3 text-sm font-bold transition ${
-                    draft.when === o.value
-                      ? "border-primary bg-accent text-accent-foreground"
-                      : "border-border bg-card hover:bg-muted"
-                  }`}
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-            {draft.when === "date" && (
-              <Input
-                type="datetime-local"
-                value={draft.date}
-                onChange={(e) => update({ date: e.target.value })}
-                className="rounded-xl"
-                aria-label="Data e hora do serviço"
-              />
-            )}
-          </section>
+          <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
         {step === 3 && (
