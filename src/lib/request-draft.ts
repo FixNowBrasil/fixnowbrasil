@@ -7,6 +7,9 @@ import { useCallback, useMemo, useState } from "react";
 
 export type ProblemMode = "describe" | "choose";
 
+/** Corresponde ao campo `when_option` de `service_requests`. */
+export type WhenOption = "now" | "scheduled";
+
 /** Endereço estruturado (base futura para distância/matching por cidade, UF e CEP). */
 export type DraftAddress = {
   /** id em `addresses` quando o endereço veio de um salvo. */
@@ -63,6 +66,7 @@ export function createRequestDraft(partial: Partial<RequestDraft> = {}): Request
     addressParts: null,
     when: "now",
     date: "",
+    time: "",
     ...partial,
   };
 }
@@ -81,6 +85,26 @@ export function validateProblemStep(draft: RequestDraft): string | null {
   return null;
 }
 
+/** Data/hora escolhidas como Date local (null quando não é agendamento válido). */
+export function draftScheduledAt(draft: RequestDraft): Date | null {
+  if (draft.when !== "scheduled" || !draft.date || !draft.time) return null;
+  const [year = 0, month = 1, day = 1] = draft.date.split("-").map(Number);
+  const [hour = 0, minute = 0] = draft.time.split(":").map(Number);
+  const value = new Date(year, month - 1, day, hour, minute, 0, 0);
+  return Number.isNaN(value.getTime()) ? null : value;
+}
+
+/** Valida a PARTE 3. Retorna null quando está tudo certo. */
+export function validateWhenStep(draft: RequestDraft): string | null {
+  if (draft.when === "now") return null;
+  if (!draft.date) return "Escolha uma data para continuar.";
+  if (!draft.time) return "Escolha um horário para continuar.";
+  const at = draftScheduledAt(draft);
+  if (!at) return "Escolha uma data e horário válidos.";
+  if (at.getTime() <= Date.now()) return "Escolha uma data e horário futuros.";
+  return null;
+}
+
 export function useRequestDraft(initial: Partial<RequestDraft> = {}) {
   const [draft, setDraft] = useState<RequestDraft>(() => createRequestDraft(initial));
   const update = useCallback(
@@ -88,5 +112,6 @@ export function useRequestDraft(initial: Partial<RequestDraft> = {}) {
     [],
   );
   const problemError = useMemo(() => validateProblemStep(draft), [draft]);
-  return { draft, update, problemError };
+  const whenError = useMemo(() => validateWhenStep(draft), [draft]);
+  return { draft, update, problemError, whenError };
 }
