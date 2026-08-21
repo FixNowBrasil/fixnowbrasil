@@ -468,6 +468,48 @@ export type Database = {
           },
         ]
       }
+      request_invites: {
+        Row: {
+          created_at: string
+          id: string
+          provider_id: string
+          rank: number
+          request_id: string
+          score: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_id: string
+          rank?: number
+          request_id: string
+          score?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_id?: string
+          rank?: number
+          request_id?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_invites_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_invites_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       request_locations: {
         Row: {
           accuracy: number | null
@@ -788,6 +830,21 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_request_with_matching: {
+        Args: {
+          p_address: string
+          p_category_id: string
+          p_city: string
+          p_description: string
+          p_need: string
+          p_photos: string[]
+          p_request_id: string
+          p_scheduled_at: string
+          p_service_id: string
+          p_when_option: string
+        }
+        Returns: Json
+      }
       has_role:
         | {
             Args: {
@@ -804,6 +861,14 @@ export type Database = {
             Returns: boolean
           }
       is_blocked: { Args: { _user_id: string }; Returns: boolean }
+      is_invited_provider: {
+        Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_request_client: {
+        Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
       submit_review: {
         Args: {
           p_author_name?: string
@@ -834,6 +899,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      unaccent_stub: { Args: { _text: string }; Returns: string }
     }
     Enums: {
       app_role: "client" | "provider" | "admin"
