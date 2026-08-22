@@ -1,19 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
 import { AddressStep } from "@/components/request-flow/AddressStep";
+import { MatchingStep } from "@/components/request-flow/MatchingStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
 import { WhenStep } from "@/components/request-flow/WhenStep";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
-import { draftScheduledAt, useRequestDraft } from "@/lib/request-draft";
+import { useRequestDraft } from "@/lib/request-draft";
 
 type SearchParams = { service?: string | undefined; provider?: string | undefined };
 
