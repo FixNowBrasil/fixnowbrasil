@@ -23,15 +23,15 @@ export function MatchingStep({ draft, onRetry }: { draft: RequestDraft; onRetry:
     (async () => {
       const { data, error } = await supabase.rpc("create_request_with_matching", {
         p_request_id: draft.draftId,
-        p_service_id: draft.serviceId,
-        p_category_id: draft.categoryId,
-        p_need: draft.need,
+        p_service_id: draft.serviceId ?? undefined,
+        p_category_id: draft.categoryId ?? undefined,
+        p_need: draft.need ?? undefined,
         p_description: draft.description.trim() || draft.need || "Serviço solicitado pelo app",
         p_photos: draft.photos,
         p_when_option: draft.when,
-        p_scheduled_at: draftScheduledAt(draft)?.toISOString() ?? null,
+        p_scheduled_at: draftScheduledAt(draft)?.toISOString() ?? undefined,
         p_address: draft.address,
-        p_city: draft.addressParts?.city ?? null,
+        p_city: draft.addressParts?.city ?? undefined,
       });
       if (error) {
         setState("error");
