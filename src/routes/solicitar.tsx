@@ -1,19 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { CardSkeleton, EmptyState, ProviderCard } from "@/components/fixnow-ui";
 import { AddressStep } from "@/components/request-flow/AddressStep";
+import { MatchingStep } from "@/components/request-flow/MatchingStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
 import { WhenStep } from "@/components/request-flow/WhenStep";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { allServicesQuery, categoriesQuery, providersQuery } from "@/lib/fixnow";
-import { draftScheduledAt, useRequestDraft } from "@/lib/request-draft";
+import { useRequestDraft } from "@/lib/request-draft";
 
 type SearchParams = { service?: string | undefined; provider?: string | undefined };
 
@@ -53,7 +51,7 @@ function SolicitarPage() {
   const [showProblemError, setShowProblemError] = useState(false);
   const [showAddressError, setShowAddressError] = useState(false);
   const [showWhenError, setShowWhenError] = useState(false);
-  const [saving, setSaving] = useState(false);
+  
   const prefilled = useRef(false);
 
   const preselected = (allProviders.data ?? []).find((p) => p.id === search.provider);
@@ -75,47 +73,6 @@ function SolicitarPage() {
 
   const category = (categories.data ?? []).find((c) => c.id === draft.categoryId);
 
-  const matches = useMemo(() => {
-    const list = allProviders.data ?? [];
-    if (preselected) return [preselected];
-    if (draft.categoryId) return list.filter((p) => p.category_id === draft.categoryId);
-    return list;
-  }, [allProviders.data, draft.categoryId, preselected]);
-
-  async function createRequest(providerId: string) {
-    if (!user) {
-      toast.info("Entre na sua conta para concluir a solicitação.");
-      navigate({ to: "/auth" });
-      return;
-    }
-    setSaving(true);
-    const { data, error } = await supabase
-      .from("service_requests")
-      .insert({
-        id: draft.draftId,
-        client_id: user.id,
-        provider_id: providerId,
-        service_id: draft.serviceId,
-        category_id: draft.categoryId,
-        need: draft.need,
-        description: draft.description.trim() || draft.need || "Serviço solicitado pelo app",
-        photos: draft.photos,
-        when_option: draft.when,
-        scheduled_at: draftScheduledAt(draft)?.toISOString() ?? null,
-        address: draft.address,
-        status: "sent",
-      })
-      .select("id")
-      .single();
-    setSaving(false);
-    if (error) {
-      toast.error("Não foi possível enviar a solicitação. Tente novamente.");
-      return;
-    }
-    toast.success("Solicitação enviada! Acompanhe o status.");
-    navigate({ to: "/pedidos/$id", params: { id: data.id } });
-  }
-
   const canAdvance =
     (step === 0 && !problemError) ||
     (step === 1 && draft.address.trim().length >= 5) ||
@@ -132,10 +89,17 @@ function SolicitarPage() {
       toast.error("Escolha ou cadastre um endereço para continuar.");
       return;
     }
-    if (step === 2 && whenError) {
-      setShowWhenError(true);
-      toast.error(whenError);
-      return;
+    if (step === 2) {
+      if (whenError) {
+        setShowWhenError(true);
+        toast.error(whenError);
+        return;
+      }
+      if (!user) {
+        toast.info("Entre na sua conta para concluir a solicitação.");
+        navigate({ to: "/auth" });
+        return;
+      }
     }
     setStep(step + 1);
   }
@@ -176,34 +140,7 @@ function SolicitarPage() {
           <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
-        {step === 3 && (
-          <section className="space-y-4">
-            <h1 className="font-display text-xl font-bold">Profissionais compatíveis</h1>
-            {allProviders.isLoading ? (
-              <CardSkeleton count={2} />
-            ) : matches.length === 0 ? (
-              <EmptyState
-                title="Nenhum profissional disponível"
-                description="Tente outra categoria ou volte mais tarde."
-              />
-            ) : (
-              <div className="space-y-4">
-                {matches.map((p) => (
-                  <div key={p.id} className="space-y-2">
-                    <ProviderCard provider={p} categoryName={category?.name} />
-                    <Button
-                      className="w-full font-extrabold"
-                      disabled={saving}
-                      onClick={() => createRequest(p.id)}
-                    >
-                      {saving ? "Enviando..." : `Solicitar com ${p.name.split(" ")[0]}`}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
+        {step === 3 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
 
         <div className="flex items-center justify-between gap-3">
           <Button

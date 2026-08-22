@@ -833,14 +833,14 @@ export type Database = {
       create_request_with_matching: {
         Args: {
           p_address: string
-          p_category_id: string
-          p_city: string
+          p_category_id?: string
+          p_city?: string
           p_description: string
-          p_need: string
-          p_photos: string[]
+          p_need?: string
+          p_photos?: string[]
           p_request_id: string
-          p_scheduled_at: string
-          p_service_id: string
+          p_scheduled_at?: string
+          p_service_id?: string
           p_when_option: string
         }
         Returns: Json
