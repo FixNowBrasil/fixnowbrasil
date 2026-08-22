@@ -73,47 +73,6 @@ function SolicitarPage() {
 
   const category = (categories.data ?? []).find((c) => c.id === draft.categoryId);
 
-  const matches = useMemo(() => {
-    const list = allProviders.data ?? [];
-    if (preselected) return [preselected];
-    if (draft.categoryId) return list.filter((p) => p.category_id === draft.categoryId);
-    return list;
-  }, [allProviders.data, draft.categoryId, preselected]);
-
-  async function createRequest(providerId: string) {
-    if (!user) {
-      toast.info("Entre na sua conta para concluir a solicitação.");
-      navigate({ to: "/auth" });
-      return;
-    }
-    setSaving(true);
-    const { data, error } = await supabase
-      .from("service_requests")
-      .insert({
-        id: draft.draftId,
-        client_id: user.id,
-        provider_id: providerId,
-        service_id: draft.serviceId,
-        category_id: draft.categoryId,
-        need: draft.need,
-        description: draft.description.trim() || draft.need || "Serviço solicitado pelo app",
-        photos: draft.photos,
-        when_option: draft.when,
-        scheduled_at: draftScheduledAt(draft)?.toISOString() ?? null,
-        address: draft.address,
-        status: "sent",
-      })
-      .select("id")
-      .single();
-    setSaving(false);
-    if (error) {
-      toast.error("Não foi possível enviar a solicitação. Tente novamente.");
-      return;
-    }
-    toast.success("Solicitação enviada! Acompanhe o status.");
-    navigate({ to: "/pedidos/$id", params: { id: data.id } });
-  }
-
   const canAdvance =
     (step === 0 && !problemError) ||
     (step === 1 && draft.address.trim().length >= 5) ||
@@ -130,10 +89,17 @@ function SolicitarPage() {
       toast.error("Escolha ou cadastre um endereço para continuar.");
       return;
     }
-    if (step === 2 && whenError) {
-      setShowWhenError(true);
-      toast.error(whenError);
-      return;
+    if (step === 2) {
+      if (whenError) {
+        setShowWhenError(true);
+        toast.error(whenError);
+        return;
+      }
+      if (!user) {
+        toast.info("Entre na sua conta para concluir a solicitação.");
+        navigate({ to: "/auth" });
+        return;
+      }
     }
     setStep(step + 1);
   }
