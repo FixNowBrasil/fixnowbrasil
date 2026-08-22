@@ -127,13 +127,30 @@ export function PainelPage() {
     queryKey: ["provider-requests", p?.id],
     enabled: !!p?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_requests")
-        .select("*, services(name)")
-        .eq("provider_id", p!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      // Pedidos já atribuídos + convites recebidos no matching (request_invites).
+      const [assigned, invites] = await Promise.all([
+        supabase
+          .from("service_requests")
+          .select("*, services(name)")
+          .eq("provider_id", p!.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("request_invites").select("request_id").eq("provider_id", p!.id),
+      ]);
+      if (assigned.error) throw assigned.error;
+      if (invites.error) throw invites.error;
+      const rows = [...(assigned.data ?? [])];
+      const seen = new Set(rows.map((r) => r.id));
+      const pending = (invites.data ?? []).map((i) => i.request_id).filter((id) => !seen.has(id));
+      if (pending.length > 0) {
+        const { data, error } = await supabase
+          .from("service_requests")
+          .select("*, services(name)")
+          .in("id", pending)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        rows.push(...(data ?? []));
+      }
+      return rows;
     },
   });
 
