@@ -176,34 +176,7 @@ function SolicitarPage() {
           <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
-        {step === 3 && (
-          <section className="space-y-4">
-            <h1 className="font-display text-xl font-bold">Profissionais compatíveis</h1>
-            {allProviders.isLoading ? (
-              <CardSkeleton count={2} />
-            ) : matches.length === 0 ? (
-              <EmptyState
-                title="Nenhum profissional disponível"
-                description="Tente outra categoria ou volte mais tarde."
-              />
-            ) : (
-              <div className="space-y-4">
-                {matches.map((p) => (
-                  <div key={p.id} className="space-y-2">
-                    <ProviderCard provider={p} categoryName={category?.name} />
-                    <Button
-                      className="w-full font-extrabold"
-                      disabled={saving}
-                      onClick={() => createRequest(p.id)}
-                    >
-                      {saving ? "Enviando..." : `Solicitar com ${p.name.split(" ")[0]}`}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
+        {step === 3 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
 
         <div className="flex items-center justify-between gap-3">
           <Button
