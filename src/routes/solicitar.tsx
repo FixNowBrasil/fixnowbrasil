@@ -51,7 +51,7 @@ function SolicitarPage() {
   const [showProblemError, setShowProblemError] = useState(false);
   const [showAddressError, setShowAddressError] = useState(false);
   const [showWhenError, setShowWhenError] = useState(false);
-  const [saving, setSaving] = useState(false);
+  
   const prefilled = useRef(false);
 
   const preselected = (allProviders.data ?? []).find((p) => p.id === search.provider);
