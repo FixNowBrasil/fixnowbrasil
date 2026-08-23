@@ -69,6 +69,18 @@ function PedidoPage() {
     },
   });
 
+  const invites = useQuery({
+    queryKey: ["request-invites", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("request_invites")
+        .select("provider_id")
+        .eq("request_id", id);
+      if (error) throw error;
+      return (data ?? []).map((i) => i.provider_id);
+    },
+  });
+
   const sendReview = useMutation({
     mutationFn: async () => {
       const req = request.data as unknown as ServiceRequest;
