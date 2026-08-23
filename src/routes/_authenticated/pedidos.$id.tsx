@@ -142,6 +142,9 @@ function PedidoPage() {
 
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
+  const isInvitedProvider =
+    !!myProvider.data?.id && (invites.data ?? []).includes(myProvider.data.id);
+  const actsAsProvider = isRequestProvider || (!req.provider_id && isInvitedProvider);
   const isRequestClient = !!user?.id && user.id === req.client_id;
   const canSchedule =
     isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
