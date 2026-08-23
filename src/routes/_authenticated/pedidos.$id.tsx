@@ -199,17 +199,23 @@ function PedidoPage() {
             </div>
           </dl>
         </header>
-        <QuotePanel
-          requestId={req.id}
-          providerId={myProvider.data?.id ?? null}
-          role={isRequestProvider ? "provider" : "client"}
-        />
-        <PaymentPanel
-          requestId={req.id}
-          role={isRequestProvider ? "provider" : "client"}
-          providerName={req.providers?.name ?? null}
-          serviceName={req.services?.name ?? req.need ?? null}
-        />
+        {isRequestClient ? (
+          <ReceivedQuotes requestId={req.id} chosenProviderId={req.provider_id} />
+        ) : (
+          <QuotePanel
+            requestId={req.id}
+            providerId={myProvider.data?.id ?? null}
+            role={actsAsProvider ? "provider" : "client"}
+          />
+        )}
+        {(isRequestClient ? !!req.provider_id : true) && (
+          <PaymentPanel
+            requestId={req.id}
+            role={actsAsProvider ? "provider" : "client"}
+            providerName={req.providers?.name ?? null}
+            serviceName={req.services?.name ?? req.need ?? null}
+          />
+        )}
         {req.status === "on_the_way" && (
           <LiveTrackingPanel
             requestId={req.id}
