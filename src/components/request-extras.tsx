@@ -30,7 +30,7 @@ export function RequestChat({ requestId, meId }: { requestId: string; meId: stri
   });
 
   return (
-    <section className="surface-card p-5">
+    <section id="conversa" className="surface-card scroll-mt-20 p-5">
       <h2 className="mb-3 font-display text-base font-bold">Conversa</h2>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {(messages.data ?? []).length === 0 && (
