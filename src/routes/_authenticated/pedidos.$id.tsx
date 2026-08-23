@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
 import { QuotePanel, RequestChat } from "@/components/request-extras";
+import { ReceivedQuotes } from "@/components/request-flow/ReceivedQuotes";
 import { PaymentPanel } from "@/components/PaymentPanel";
 import { ClientSchedulePicker } from "@/components/ClientSchedulePicker";
 import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
@@ -66,6 +67,18 @@ function PedidoPage() {
         .maybeSingle();
       if (error) throw error;
       return data;
+    },
+  });
+
+  const invites = useQuery({
+    queryKey: ["request-invites", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("request_invites")
+        .select("provider_id")
+        .eq("request_id", id);
+      if (error) throw error;
+      return (data ?? []).map((i) => i.provider_id);
     },
   });
 
@@ -142,6 +155,9 @@ function PedidoPage() {
 
   const currentIndex = REQUEST_STEPS.findIndex((s) => s.key === req.status);
   const isRequestProvider = !!myProvider.data?.id && myProvider.data.id === req.provider_id;
+  const isInvitedProvider =
+    !!myProvider.data?.id && (invites.data ?? []).includes(myProvider.data.id);
+  const actsAsProvider = isRequestProvider || (!req.provider_id && isInvitedProvider);
   const isRequestClient = !!user?.id && user.id === req.client_id;
   const canSchedule =
     isRequestClient && !isRequestProvider && !!req.provider_id && req.status === "confirmed";
@@ -184,17 +200,23 @@ function PedidoPage() {
             </div>
           </dl>
         </header>
-        <QuotePanel
-          requestId={req.id}
-          providerId={myProvider.data?.id ?? null}
-          role={isRequestProvider ? "provider" : "client"}
-        />
-        <PaymentPanel
-          requestId={req.id}
-          role={isRequestProvider ? "provider" : "client"}
-          providerName={req.providers?.name ?? null}
-          serviceName={req.services?.name ?? req.need ?? null}
-        />
+        {isRequestClient ? (
+          <ReceivedQuotes requestId={req.id} chosenProviderId={req.provider_id} />
+        ) : (
+          <QuotePanel
+            requestId={req.id}
+            providerId={myProvider.data?.id ?? null}
+            role={actsAsProvider ? "provider" : "client"}
+          />
+        )}
+        {(isRequestClient ? !!req.provider_id : true) && (
+          <PaymentPanel
+            requestId={req.id}
+            role={actsAsProvider ? "provider" : "client"}
+            providerName={req.providers?.name ?? null}
+            serviceName={req.services?.name ?? req.need ?? null}
+          />
+        )}
         {req.status === "on_the_way" && (
           <LiveTrackingPanel
             requestId={req.id}

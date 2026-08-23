@@ -42,6 +42,34 @@ export const quotesQuery = (requestId: string) => ({
   },
 });
 
+export type QuoteWithProvider = Quote & {
+  providers: {
+    id: string;
+    name: string;
+    avatar_url: string | null;
+    rating: number;
+    reviews_count: number;
+    distance_km: number | null;
+    verified: boolean;
+  } | null;
+};
+
+export const quotesWithProvidersQuery = (requestId: string) => ({
+  queryKey: ["quotes", requestId, "providers"],
+  refetchInterval: 15000,
+  queryFn: async (): Promise<QuoteWithProvider[]> => {
+    const { data, error } = await supabase
+      .from("quotes")
+      .select(
+        "*, providers(id, name, avatar_url, rating, reviews_count, distance_km, verified)",
+      )
+      .eq("request_id", requestId)
+      .order("amount");
+    if (error) throw error;
+    return (data ?? []) as unknown as QuoteWithProvider[];
+  },
+});
+
 export const messagesQuery = (requestId: string) => ({
   queryKey: ["messages", requestId],
   queryFn: async (): Promise<Message[]> => {
