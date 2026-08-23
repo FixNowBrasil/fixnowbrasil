@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { REQUEST_STEPS, type ServiceRequest } from "@/lib/fixnow";
 import { QuotePanel, RequestChat } from "@/components/request-extras";
+import { ReceivedQuotes } from "@/components/request-flow/ReceivedQuotes";
 import { PaymentPanel } from "@/components/PaymentPanel";
 import { ClientSchedulePicker } from "@/components/ClientSchedulePicker";
 import { LiveTrackingPanel } from "@/components/LiveTrackingPanel";
