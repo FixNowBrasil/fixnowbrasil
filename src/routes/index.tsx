@@ -31,9 +31,28 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+const STEPS = [
+  {
+    icon: MessageSquareText,
+    title: "Conte o problema",
+    text: "Descreva com suas palavras ou escolha uma categoria. Pode enviar fotos.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Receba orçamentos",
+    text: "Enviamos sua solicitação para até 5 profissionais compatíveis perto de você.",
+  },
+  {
+    icon: Wrench,
+    title: "Escolha e acompanhe",
+    text: "Compare preços e avaliações, escolha um profissional e acompanhe até o fim.",
+  },
+] as const;
+
 function Home() {
   const navigate = useNavigate();
   const [term, setTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const categories = useQuery(categoriesQuery);
   const services = useQuery(popularServicesQuery);
   const providers = useQuery(providersQuery());
@@ -53,27 +72,52 @@ function Home() {
             <Zap className="h-3.5 w-3.5" /> Precisou? FixNow.
           </p>
           <h1 className="max-w-2xl text-3xl font-extrabold leading-tight md:text-5xl">
-            Olá! O que você precisa resolver hoje?
+            O que você precisa resolver hoje?
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground md:text-base">
-            Encontre profissionais avaliados perto de você e contrate em poucos passos.
+            Descreva o problema em 1 minuto e receba orçamentos de até 5 profissionais avaliados perto de você.
           </p>
 
-          <form onSubmit={submit} className="mt-6 flex max-w-2xl flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={term}
-                onChange={(e) => setTerm(e.target.value)}
-                placeholder="Digite um serviço ou problema..."
-                aria-label="Buscar serviço"
-                className="h-14 w-full rounded-2xl border border-border bg-card pl-12 pr-4 text-base font-medium shadow-[var(--shadow-card)] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
-              />
-            </div>
-            <Button type="submit" size="lg" className="h-14 rounded-2xl px-8 text-base font-extrabold">
-              Buscar
-            </Button>
-          </form>
+          <div className="mt-6 flex max-w-2xl flex-col gap-3">
+            <Link to="/solicitar" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                className="h-16 w-full rounded-2xl px-8 text-base font-extrabold shadow-[var(--shadow-glow)] sm:w-auto md:text-lg"
+              >
+                <Zap className="h-5 w-5" />
+                Preciso de um profissional
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            </Link>
+
+            {showSearch ? (
+              <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    value={term}
+                    autoFocus
+                    onChange={(e) => setTerm(e.target.value)}
+                    placeholder="Digite um serviço ou problema..."
+                    aria-label="Buscar serviço"
+                    className="h-14 w-full rounded-2xl border border-border bg-card pl-12 pr-4 text-base font-medium shadow-[var(--shadow-card)] outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
+                  />
+                </div>
+                <Button type="submit" size="lg" variant="outline" className="h-14 rounded-2xl px-8 text-base font-extrabold">
+                  Buscar
+                </Button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowSearch(true)}
+                className="inline-flex w-fit items-center gap-2 text-sm font-bold text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+              >
+                <Search className="h-4 w-4" />
+                Prefiro buscar por serviço
+              </button>
+            )}
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
@@ -90,6 +134,26 @@ function Home() {
       </section>
 
       <div className="mx-auto w-full max-w-6xl space-y-10 px-4 py-8">
+        <section>
+          <h2 className="mb-4 font-display text-lg font-bold">Como funciona</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {STEPS.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.title} className="surface-card flex flex-col gap-2 p-4">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-accent-foreground">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <p className="text-sm font-extrabold">
+                    <span className="text-primary">{i + 1}.</span> {step.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{step.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         <section>
           <h2 className="mb-4 font-display text-lg font-bold">Categorias</h2>
           {categories.isLoading ? (
@@ -137,7 +201,21 @@ function Home() {
             </div>
           )}
         </section>
+
+        <section className="surface-card flex flex-col items-start gap-3 p-6 text-left sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold">Ainda com o problema?</h2>
+            <p className="text-sm text-muted-foreground">Conte o que aconteceu e deixe que a gente encontra quem resolve.</p>
+          </div>
+          <Link to="/solicitar" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full rounded-2xl font-extrabold sm:w-auto">
+              Preciso de um profissional
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </Link>
+        </section>
       </div>
     </AppShell>
   );
 }
+
