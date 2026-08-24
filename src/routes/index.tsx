@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, ShieldCheck, Zap, Star } from "lucide-react";
+import { Search, ShieldCheck, Zap, Star, ArrowRight, MessageSquareText, ClipboardCheck, Wrench } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { CardSkeleton, CategoryTile, ProviderCard, ServiceCard } from "@/components/fixnow-ui";
 import { Button } from "@/components/ui/button";
 import { categoriesQuery, popularServicesQuery, providersQuery } from "@/lib/fixnow";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
