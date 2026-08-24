@@ -17,7 +17,9 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Acesse sua conta FixNow para solicitar e acompanhar serviços." },
       { property: "og:title", content: "Entrar ou criar conta — FixNow" },
       { property: "og:description", content: "Sua conta FixNow para contratar profissionais." },
+      { property: "og:url", content: "https://fixnowbrasil.lovable.app/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://fixnowbrasil.lovable.app/auth" }],
   }),
   component: AuthPage,
 });

@@ -30,7 +30,9 @@ export const Route = createFileRoute("/solicitar")({
       },
       { property: "og:title", content: "Solicitar serviço — FixNow" },
       { property: "og:description", content: "Contrate um profissional em poucos passos." },
+      { property: "og:url", content: "https://fixnowbrasil.lovable.app/solicitar" },
     ],
+    links: [{ rel: "canonical", href: "https://fixnowbrasil.lovable.app/solicitar" }],
   }),
   component: SolicitarPage,
 });

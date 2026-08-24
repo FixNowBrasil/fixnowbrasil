@@ -117,7 +117,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             {user ? (
               <>
                 <NotificationBell />
-                <Button variant="outline" size="sm" onClick={switchMode} className="font-semibold">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={switchMode}
+                  aria-label={inProviderMode ? "Alternar para o modo cliente" : "Alternar para o modo prestador"}
+                  className="font-semibold"
+                >
                   <ArrowLeftRight className="h-4 w-4" />
                   <span className="hidden sm:inline">
                     {inProviderMode ? "Modo cliente" : hasProviderProfile ? "Modo prestador" : "Quero ser prestador"}

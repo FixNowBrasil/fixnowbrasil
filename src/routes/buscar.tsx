@@ -21,7 +21,9 @@ export const Route = createFileRoute("/buscar")({
       },
       { property: "og:title", content: "Buscar serviços e profissionais — FixNow" },
       { property: "og:description", content: "Pesquise serviços e encontre profissionais avaliados." },
+      { property: "og:url", content: "https://fixnowbrasil.lovable.app/buscar" },
     ],
+    links: [{ rel: "canonical", href: "https://fixnowbrasil.lovable.app/buscar" }],
   }),
   component: BuscarPage,
 });
