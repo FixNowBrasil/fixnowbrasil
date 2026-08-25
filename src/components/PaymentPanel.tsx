@@ -118,7 +118,7 @@ export function PaymentPanel({
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pagar serviço</DialogTitle>
             <DialogDescription>
@@ -126,40 +126,19 @@ export function PaymentPanel({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-2">
-            {(
-              [
-                { value: "pix", label: "PIX", icon: QrCode },
-                { value: "card", label: "Cartão", icon: CreditCard },
-              ] as const
-            ).map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setMethod(option.value)}
-                className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-sm font-bold",
-                  method === option.value ? "border-primary text-primary" : "border-border",
-                )}
-              >
-                <option.icon className="h-5 w-5" />
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <PaymentTestModeBanner />
 
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0" />
-            Pagamento retido pelo FixNow e liberado ao prestador após a conclusão do serviço.
+            Pagamento processado com segurança e liberado ao prestador após a conclusão do serviço.
           </p>
 
-          <Button
-            className="w-full font-extrabold"
-            disabled={doPay.isPending}
-            onClick={() => doPay.mutate()}
-          >
-            Confirmar pagamento
-          </Button>
+          {open && accepted && (
+            <StripeEmbeddedCheckout
+              quoteId={accepted.id}
+              returnUrl={`${window.location.origin}/pedidos/${requestId}?pagamento=concluido`}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </section>
