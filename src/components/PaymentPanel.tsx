@@ -29,7 +29,6 @@ export function PaymentPanel({
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod>("pix");
 
   const quotes = useQuery(quotesQuery(requestId));
   const payment = useQuery(paymentQuery(requestId));
@@ -37,24 +36,18 @@ export function PaymentPanel({
   const accepted = (quotes.data ?? []).find((q) => q.status === "accepted");
   const pay = payment.data ?? null;
 
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["payment", requestId] });
-    queryClient.invalidateQueries({ queryKey: ["request", requestId] });
-  };
+  const paymentPending = pay?.status === "pending";
 
-  const doPay = useMutation({
-    mutationFn: async () => {
-      if (!accepted) throw new Error("Nenhum orçamento aceito.");
-      const created = await createPaymentForQuote(accepted.id, method);
-      await confirmPayment(created.id);
-    },
-    onSuccess: () => {
-      toast.success("Pagamento confirmado. O prestador já pode executar o serviço.");
-      setOpen(false);
-      refresh();
-    },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Falha no pagamento."),
-  });
+  // Depois do checkout, o pagamento é confirmado pelo provedor via webhook:
+  // atualizamos o painel por alguns instantes até o status chegar.
+  useEffect(() => {
+    if (!paymentPending) return;
+    const timer = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["payment", requestId] });
+      queryClient.invalidateQueries({ queryKey: ["request", requestId] });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [paymentPending, queryClient, requestId]);
 
   if (!accepted && !pay) return null;
 
