@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, QrCode, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,15 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { brl } from "@/lib/fixnow";
 import { quotesQuery } from "@/lib/collab";
-import {
-  PAYMENT_STATUS_LABEL,
-  confirmPayment,
-  createPaymentForQuote,
-  paymentQuery,
-  type PaymentMethod,
-} from "@/lib/payments";
+import { PAYMENT_STATUS_LABEL, paymentQuery } from "@/lib/payments";
 import { cn } from "@/lib/utils";
 
 export function PaymentPanel({
