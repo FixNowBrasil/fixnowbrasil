@@ -11,7 +11,7 @@ export function PaymentTestModeBanner() {
   }
   if (clientToken.startsWith("pk_test_")) {
     return (
-      <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-center text-xs font-semibold text-warning-foreground">
+      <div className="rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-center text-xs font-semibold text-foreground">
         Modo de teste: nenhum valor real é cobrado. Use o cartão 4242 4242 4242 4242.
       </div>
     );
