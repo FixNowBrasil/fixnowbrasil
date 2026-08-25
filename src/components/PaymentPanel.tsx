@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, QrCode, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,15 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { brl } from "@/lib/fixnow";
 import { quotesQuery } from "@/lib/collab";
-import {
-  PAYMENT_STATUS_LABEL,
-  confirmPayment,
-  createPaymentForQuote,
-  paymentQuery,
-  type PaymentMethod,
-} from "@/lib/payments";
+import { PAYMENT_STATUS_LABEL, paymentQuery } from "@/lib/payments";
 import { cn } from "@/lib/utils";
 
 export function PaymentPanel({
@@ -34,7 +29,6 @@ export function PaymentPanel({
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod>("pix");
 
   const quotes = useQuery(quotesQuery(requestId));
   const payment = useQuery(paymentQuery(requestId));
@@ -42,24 +36,18 @@ export function PaymentPanel({
   const accepted = (quotes.data ?? []).find((q) => q.status === "accepted");
   const pay = payment.data ?? null;
 
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["payment", requestId] });
-    queryClient.invalidateQueries({ queryKey: ["request", requestId] });
-  };
+  const paymentPending = pay?.status === "pending";
 
-  const doPay = useMutation({
-    mutationFn: async () => {
-      if (!accepted) throw new Error("Nenhum orçamento aceito.");
-      const created = await createPaymentForQuote(accepted.id, method);
-      await confirmPayment(created.id);
-    },
-    onSuccess: () => {
-      toast.success("Pagamento confirmado. O prestador já pode executar o serviço.");
-      setOpen(false);
-      refresh();
-    },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Falha no pagamento."),
-  });
+  // Depois do checkout, o pagamento é confirmado pelo provedor via webhook:
+  // atualizamos o painel por alguns instantes até o status chegar.
+  useEffect(() => {
+    if (!paymentPending) return;
+    const timer = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["payment", requestId] });
+      queryClient.invalidateQueries({ queryKey: ["request", requestId] });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [paymentPending, queryClient, requestId]);
 
   if (!accepted && !pay) return null;
 
@@ -130,7 +118,7 @@ export function PaymentPanel({
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pagar serviço</DialogTitle>
             <DialogDescription>
@@ -138,40 +126,19 @@ export function PaymentPanel({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-2">
-            {(
-              [
-                { value: "pix", label: "PIX", icon: QrCode },
-                { value: "card", label: "Cartão", icon: CreditCard },
-              ] as const
-            ).map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setMethod(option.value)}
-                className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl border-2 p-3 text-sm font-bold",
-                  method === option.value ? "border-primary text-primary" : "border-border",
-                )}
-              >
-                <option.icon className="h-5 w-5" />
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <PaymentTestModeBanner />
 
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0" />
-            Pagamento retido pelo FixNow e liberado ao prestador após a conclusão do serviço.
+            Pagamento processado com segurança e liberado ao prestador após a conclusão do serviço.
           </p>
 
-          <Button
-            className="w-full font-extrabold"
-            disabled={doPay.isPending}
-            onClick={() => doPay.mutate()}
-          >
-            Confirmar pagamento
-          </Button>
+          {open && accepted && (
+            <StripeEmbeddedCheckout
+              quoteId={accepted.id}
+              returnUrl={`${window.location.origin}/pedidos/${requestId}?pagamento=concluido`}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </section>
