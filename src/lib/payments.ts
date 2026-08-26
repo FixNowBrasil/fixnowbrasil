@@ -45,25 +45,7 @@ export const paymentQuery = (requestId: string) => ({
 });
 
 /**
- * MVP: no real gateway yet. The database creates the payment record from an
- * accepted quote and the client confirms it. A future PIX/card integration
- * only needs to replace the confirmation step with the gateway callback,
- * storing its id in `external_reference`.
+ * O pagamento é criado no servidor junto com a sessão de checkout e só é
+ * marcado como pago pela confirmação automática do provedor (webhook).
  */
-export async function createPaymentForQuote(quoteId: string, method: PaymentMethod) {
-  const { data, error } = await supabase.rpc("create_payment_for_quote" as never, {
-    p_quote_id: quoteId,
-    p_method: method,
-  } as never);
-  if (error) throw error;
-  return data as unknown as Payment;
-}
 
-export async function confirmPayment(paymentId: string) {
-  const { data, error } = await supabase.rpc("confirm_payment" as never, {
-    p_payment_id: paymentId,
-    p_external_reference: null,
-  } as never);
-  if (error) throw error;
-  return data as unknown as Payment;
-}
