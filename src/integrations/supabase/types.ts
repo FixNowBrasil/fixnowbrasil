@@ -334,6 +334,156 @@ export type Database = {
           },
         ]
       }
+      provider_verifications: {
+        Row: {
+          address: string | null
+          address_complement: string | null
+          address_number: string | null
+          address_proof_path: string | null
+          availability: string | null
+          birth_date: string | null
+          city: string | null
+          cpf: string | null
+          created_at: string
+          current_step: Database["public"]["Enums"]["verification_step"]
+          email: string | null
+          experience_years: number
+          full_name: string | null
+          id: string
+          identity_document_back_path: string | null
+          identity_document_front_path: string | null
+          identity_document_type: string | null
+          liveness_status: Database["public"]["Enums"]["liveness_status"]
+          neighborhood: string | null
+          phone: string | null
+          privacy_accepted_at: string | null
+          professional_category: string | null
+          professional_description: string | null
+          provider_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          service_radius: number
+          service_region: string | null
+          services: string[]
+          state: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          stripe_account_id: string | null
+          stripe_verification_status: string | null
+          submitted_at: string | null
+          terms_accepted_at: string | null
+          updated_at: string
+          verification_email: boolean
+          verification_phone: boolean
+          work_photos: string[]
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          address_complement?: string | null
+          address_number?: string | null
+          address_proof_path?: string | null
+          availability?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          current_step?: Database["public"]["Enums"]["verification_step"]
+          email?: string | null
+          experience_years?: number
+          full_name?: string | null
+          id?: string
+          identity_document_back_path?: string | null
+          identity_document_front_path?: string | null
+          identity_document_type?: string | null
+          liveness_status?: Database["public"]["Enums"]["liveness_status"]
+          neighborhood?: string | null
+          phone?: string | null
+          privacy_accepted_at?: string | null
+          professional_category?: string | null
+          professional_description?: string | null
+          provider_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          service_radius?: number
+          service_region?: string | null
+          services?: string[]
+          state?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          stripe_account_id?: string | null
+          stripe_verification_status?: string | null
+          submitted_at?: string | null
+          terms_accepted_at?: string | null
+          updated_at?: string
+          verification_email?: boolean
+          verification_phone?: boolean
+          work_photos?: string[]
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          address_complement?: string | null
+          address_number?: string | null
+          address_proof_path?: string | null
+          availability?: string | null
+          birth_date?: string | null
+          city?: string | null
+          cpf?: string | null
+          created_at?: string
+          current_step?: Database["public"]["Enums"]["verification_step"]
+          email?: string | null
+          experience_years?: number
+          full_name?: string | null
+          id?: string
+          identity_document_back_path?: string | null
+          identity_document_front_path?: string | null
+          identity_document_type?: string | null
+          liveness_status?: Database["public"]["Enums"]["liveness_status"]
+          neighborhood?: string | null
+          phone?: string | null
+          privacy_accepted_at?: string | null
+          professional_category?: string | null
+          professional_description?: string | null
+          provider_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          service_radius?: number
+          service_region?: string | null
+          services?: string[]
+          state?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          stripe_account_id?: string | null
+          stripe_verification_status?: string | null
+          submitted_at?: string | null
+          terms_accepted_at?: string | null
+          updated_at?: string
+          verification_email?: boolean
+          verification_phone?: boolean
+          work_photos?: string[]
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_verifications_professional_category_fkey"
+            columns: ["professional_category"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_verifications_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: true
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       providers: {
         Row: {
           approved: boolean
@@ -753,6 +903,63 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          new_status: Database["public"]["Enums"]["verification_status"] | null
+          previous_status:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          provider_id: string
+          reason: string | null
+          verification_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["verification_status"] | null
+          previous_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          provider_id: string
+          reason?: string | null
+          verification_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["verification_status"] | null
+          previous_status?:
+            | Database["public"]["Enums"]["verification_status"]
+            | null
+          provider_id?: string
+          reason?: string | null
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_audit_logs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_audit_logs_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "provider_verifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -869,6 +1076,60 @@ export type Database = {
         Args: { _request_id: string; _user_id: string }
         Returns: boolean
       }
+      provider_is_verified: { Args: { _provider_id: string }; Returns: boolean }
+      review_verification: {
+        Args: { p_action: string; p_reason?: string; p_verification_id: string }
+        Returns: {
+          address: string | null
+          address_complement: string | null
+          address_number: string | null
+          address_proof_path: string | null
+          availability: string | null
+          birth_date: string | null
+          city: string | null
+          cpf: string | null
+          created_at: string
+          current_step: Database["public"]["Enums"]["verification_step"]
+          email: string | null
+          experience_years: number
+          full_name: string | null
+          id: string
+          identity_document_back_path: string | null
+          identity_document_front_path: string | null
+          identity_document_type: string | null
+          liveness_status: Database["public"]["Enums"]["liveness_status"]
+          neighborhood: string | null
+          phone: string | null
+          privacy_accepted_at: string | null
+          professional_category: string | null
+          professional_description: string | null
+          provider_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          service_radius: number
+          service_region: string | null
+          services: string[]
+          state: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          stripe_account_id: string | null
+          stripe_verification_status: string | null
+          submitted_at: string | null
+          terms_accepted_at: string | null
+          updated_at: string
+          verification_email: boolean
+          verification_phone: boolean
+          work_photos: string[]
+          zip_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provider_verifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       submit_review: {
         Args: {
           p_author_name?: string
@@ -899,10 +1160,64 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      submit_verification: {
+        Args: never
+        Returns: {
+          address: string | null
+          address_complement: string | null
+          address_number: string | null
+          address_proof_path: string | null
+          availability: string | null
+          birth_date: string | null
+          city: string | null
+          cpf: string | null
+          created_at: string
+          current_step: Database["public"]["Enums"]["verification_step"]
+          email: string | null
+          experience_years: number
+          full_name: string | null
+          id: string
+          identity_document_back_path: string | null
+          identity_document_front_path: string | null
+          identity_document_type: string | null
+          liveness_status: Database["public"]["Enums"]["liveness_status"]
+          neighborhood: string | null
+          phone: string | null
+          privacy_accepted_at: string | null
+          professional_category: string | null
+          professional_description: string | null
+          provider_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          service_radius: number
+          service_region: string | null
+          services: string[]
+          state: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          stripe_account_id: string | null
+          stripe_verification_status: string | null
+          submitted_at: string | null
+          terms_accepted_at: string | null
+          updated_at: string
+          verification_email: boolean
+          verification_phone: boolean
+          work_photos: string[]
+          zip_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "provider_verifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       unaccent_stub: { Args: { _text: string }; Returns: string }
     }
     Enums: {
       app_role: "client" | "provider" | "admin"
+      liveness_status: "not_started" | "pending" | "passed" | "failed"
       payment_status: "pending" | "paid" | "released" | "refunded" | "failed"
       request_status:
         | "sent"
@@ -913,6 +1228,21 @@ export type Database = {
         | "completed"
         | "rated"
         | "cancelled"
+      verification_status:
+        | "draft"
+        | "pending"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "suspended"
+      verification_step:
+        | "personal"
+        | "identity"
+        | "selfie"
+        | "address"
+        | "professional"
+        | "financial"
+        | "review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1041,6 +1371,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["client", "provider", "admin"],
+      liveness_status: ["not_started", "pending", "passed", "failed"],
       payment_status: ["pending", "paid", "released", "refunded", "failed"],
       request_status: [
         "sent",
@@ -1051,6 +1382,23 @@ export const Constants = {
         "completed",
         "rated",
         "cancelled",
+      ],
+      verification_status: [
+        "draft",
+        "pending",
+        "under_review",
+        "approved",
+        "rejected",
+        "suspended",
+      ],
+      verification_step: [
+        "personal",
+        "identity",
+        "selfie",
+        "address",
+        "professional",
+        "financial",
+        "review",
       ],
     },
   },
