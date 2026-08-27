@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.provider_is_verified(uuid) FROM public, anon, authenticated;
