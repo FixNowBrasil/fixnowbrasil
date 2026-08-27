@@ -26,6 +26,7 @@ import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as PrestadorIdRouteImport } from './routes/prestador.$id'
 import { Route as AuthenticatedPedidosIndexRouteImport } from './routes/_authenticated/pedidos.index'
 import { Route as AuthenticatedPedidosIdRouteImport } from './routes/_authenticated/pedidos.$id'
+import { Route as AuthenticatedProviderVerificationRouteImport } from './routes/_authenticated/provider.verification'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -115,6 +116,12 @@ const AuthenticatedPedidosIdRoute = AuthenticatedPedidosIdRouteImport.update({
   path: '/pedidos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProviderVerificationRoute =
+  AuthenticatedProviderVerificationRouteImport.update({
+    id: '/provider/verification',
+    path: '/provider/verification',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/provider/verification': typeof AuthenticatedProviderVerificationRoute
   '/pedidos/': typeof AuthenticatedPedidosIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/provider/verification': typeof AuthenticatedProviderVerificationRoute
   '/pedidos': typeof AuthenticatedPedidosIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -178,6 +187,7 @@ export interface FileRoutesById {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/prestador/$id': typeof PrestadorIdRoute
   '/_authenticated/pedidos/$id': typeof AuthenticatedPedidosIdRoute
+  '/_authenticated/provider/verification': typeof AuthenticatedProviderVerificationRoute
   '/_authenticated/pedidos/': typeof AuthenticatedPedidosIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/pedidos/$id'
+    | '/provider/verification'
     | '/pedidos/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/pedidos/$id'
+    | '/provider/verification'
     | '/pedidos'
     | '/api/public/payments/webhook'
   id:
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/prestador/$id'
     | '/_authenticated/pedidos/$id'
+    | '/_authenticated/provider/verification'
     | '/_authenticated/pedidos/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPedidosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/provider/verification': {
+      id: '/_authenticated/provider/verification'
+      path: '/provider/verification'
+      fullPath: '/provider/verification'
+      preLoaderRoute: typeof AuthenticatedProviderVerificationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -394,6 +414,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPedidosIdRoute: typeof AuthenticatedPedidosIdRoute
+  AuthenticatedProviderVerificationRoute: typeof AuthenticatedProviderVerificationRoute
   AuthenticatedPedidosIndexRoute: typeof AuthenticatedPedidosIndexRoute
 }
 
@@ -406,6 +427,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPedidosIdRoute: AuthenticatedPedidosIdRoute,
+  AuthenticatedProviderVerificationRoute:
+    AuthenticatedProviderVerificationRoute,
   AuthenticatedPedidosIndexRoute: AuthenticatedPedidosIndexRoute,
 }
 
