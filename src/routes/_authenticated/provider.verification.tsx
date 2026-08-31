@@ -301,7 +301,7 @@ function VerificationPage() {
             <Button
               onClick={() => {
                 const err = validatePersonal();
-                if (err) return toast.error(err);
+                if (err) { toast.error(err); return; }
                 void goTo("identity");
               }}
             >
@@ -348,9 +348,9 @@ function VerificationPage() {
               </Button>
               <Button
                 onClick={() => {
-                  if (!draft.identity_document_type) return toast.error("Escolha o tipo de documento.");
+                  if (!draft.identity_document_type) { toast.error("Escolha o tipo de documento."); return; }
                   if (!draft.identity_document_front_path || !draft.identity_document_back_path)
-                    return toast.error("Envie a frente e o verso.");
+                    { toast.error("Envie a frente e o verso."); return; }
                   void goTo("selfie");
                 }}
               >
@@ -382,7 +382,7 @@ function VerificationPage() {
               </Button>
               <Button
                 onClick={() => {
-                  if (!draft.selfie_path) return toast.error("Envie a selfie.");
+                  if (!draft.selfie_path) { toast.error("Envie a selfie."); return; }
                   void goTo("address");
                 }}
               >
@@ -463,8 +463,8 @@ function VerificationPage() {
               <Button
                 onClick={() => {
                   if (!draft.address || !draft.city || onlyDigits(draft.zip_code ?? "").length !== 8)
-                    return toast.error("Preencha rua, cidade e CEP.");
-                  if (!draft.address_proof_path) return toast.error("Envie o comprovante de endereço.");
+                    { toast.error("Preencha rua, cidade e CEP."); return; }
+                  if (!draft.address_proof_path) { toast.error("Envie o comprovante de endereço."); return; }
                   void goTo("professional");
                 }}
               >
@@ -584,10 +584,10 @@ function VerificationPage() {
               </Button>
               <Button
                 onClick={() => {
-                  if (!draft.professional_category) return toast.error("Escolha a categoria.");
-                  if (!draft.service_region) return toast.error("Informe a região de atendimento.");
+                  if (!draft.professional_category) { toast.error("Escolha a categoria."); return; }
+                  if (!draft.service_region) { toast.error("Informe a região de atendimento."); return; }
                   if ((draft.professional_description ?? "").trim().length < 30)
-                    return toast.error("Descreva seu trabalho com pelo menos 30 caracteres.");
+                    { toast.error("Descreva seu trabalho com pelo menos 30 caracteres."); return; }
                   void goTo("financial");
                 }}
               >
@@ -701,7 +701,7 @@ function VerificationPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value?: string | null }) {
+function Row({ label, value }: { label: string; value?: string | null | undefined }) {
   return (
     <div className="flex justify-between gap-4 border-b border-border/60 pb-1">
       <dt className="text-muted-foreground">{label}</dt>
