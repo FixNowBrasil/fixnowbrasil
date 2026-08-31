@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ShareLocationBanner } from "@/components/ShareLocationBanner";
+import { VerificationBanner } from "@/components/verification/VerificationBanner";
 import {
   REQUEST_STEPS,
   allServicesQuery,
