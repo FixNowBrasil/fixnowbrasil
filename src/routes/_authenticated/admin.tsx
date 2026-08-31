@@ -222,6 +222,10 @@ function AdminPage() {
           </table>
         </section>
 
+        <AdminVerifications enabled={isAdmin} />
+
+
+
         <section className="surface-card space-y-3 p-5">
           <h2 className="font-display text-base font-bold">Categorias</h2>
           <form
