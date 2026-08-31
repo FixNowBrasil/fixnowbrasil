@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { categoriesQuery } from "@/lib/fixnow";
+import { AdminVerifications } from "@/components/verification/AdminVerifications";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
