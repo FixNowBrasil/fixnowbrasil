@@ -103,15 +103,51 @@ function VerificationPage() {
   const save = useMutation({
     mutationFn: async (patch: Draft & { current_step?: VerificationStep }) => {
       if (!row) throw new Error("Verificação não encontrada");
+      // Envia apenas campos editáveis pelo prestador; status e campos de análise são do backend.
+      const editable: (keyof VerificationRow)[] = [
+        "current_step",
+        "full_name",
+        "cpf",
+        "birth_date",
+        "phone",
+        "email",
+        "identity_document_type",
+        "identity_document_front_path",
+        "identity_document_back_path",
+        "selfie_path",
+        "address",
+        "address_number",
+        "address_complement",
+        "neighborhood",
+        "city",
+        "state",
+        "zip_code",
+        "address_proof_path",
+        "professional_category",
+        "services",
+        "experience_years",
+        "professional_description",
+        "service_region",
+        "service_radius",
+        "availability",
+        "verification_email",
+        "terms_accepted_at",
+        "privacy_accepted_at",
+      ];
+      const payload: Record<string, unknown> = {};
+      for (const key of editable) {
+        if (key in patch) payload[key] = (patch as Record<string, unknown>)[key];
+      }
       const { error } = await supabase
         .from("provider_verifications")
-        .update({ ...patch, status: undefined } as never)
+        .update(payload as never)
         .eq("id", row.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["provider-verification", providerId] }),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Não foi possível salvar."),
   });
+
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -152,7 +188,7 @@ function VerificationPage() {
     return null;
   };
 
-  if (myProvider.isLoading || verification.isLoading) {
+  if (myProvider.isLoading || (!!providerId && verification.isLoading)) {
     return (
       <AppShell>
         <div className="flex justify-center py-20">
