@@ -152,7 +152,7 @@ function VerificationPage() {
     return null;
   };
 
-  if (myProvider.isLoading || verification.isLoading) {
+  if (myProvider.isLoading || (!!providerId && verification.isLoading)) {
     return (
       <AppShell>
         <div className="flex justify-center py-20">
