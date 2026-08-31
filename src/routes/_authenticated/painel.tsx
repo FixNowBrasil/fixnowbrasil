@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { ShareLocationBanner } from "@/components/ShareLocationBanner";
+import { VerificationBanner } from "@/components/verification/VerificationBanner";
 import {
   REQUEST_STEPS,
   allServicesQuery,
@@ -305,6 +306,7 @@ export function PainelPage() {
           <div className="h-40 animate-pulse rounded-2xl bg-muted" />
         ) : (
           <>
+            {p && <VerificationBanner providerId={p.id} />}
             {p && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[

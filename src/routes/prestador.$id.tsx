@@ -186,6 +186,16 @@ function ProviderPage() {
                   <Clock className="h-4 w-4" /> {p.years_experience} anos de experiência
                 </span>
               </div>
+              {p.verified && p.approved ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success">
+                    ✓ Identidade verificada
+                  </span>
+                  <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success">
+                    ✓ Cadastro profissional verificado
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
