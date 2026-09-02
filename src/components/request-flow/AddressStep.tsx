@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, MapPin, Plus, Star } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Briefcase, Crosshair, Home, Loader2, MapPin, Plus, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { reverseGeocode, searchAddress, type GeocodedAddress } from "@/lib/geocode.functions";
 import { formatAddress, type DraftAddress, type RequestDraft } from "@/lib/request-draft";
 
 type AddressRow = {
@@ -34,6 +36,17 @@ const emptyForm = {
   is_default: false,
 };
 
+const LABELS = [
+  { value: "Casa", icon: <Home className="h-4 w-4" /> },
+  { value: "Trabalho", icon: <Briefcase className="h-4 w-4" /> },
+  { value: "Outro", icon: <MapPin className="h-4 w-4" /> },
+];
+
+/**
+ * PARTE 2 — o endereço com o mínimo de digitação:
+ * localização do celular ou busca por texto preenchem bairro, cidade, UF e CEP.
+ * O usuário só confirma o número e o complemento.
+ */
 export function AddressStep({
   draft,
   update,
@@ -45,8 +58,15 @@ export function AddressStep({
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const search = useServerFn(searchAddress);
+  const reverse = useServerFn(reverseGeocode);
+
   const [form, setForm] = useState(emptyForm);
   const [creating, setCreating] = useState(false);
+  const [term, setTerm] = useState("");
+  const [results, setResults] = useState<GeocodedAddress[] | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [searching, setSearching] = useState(false);
 
   const addresses = useQuery({
     queryKey: ["addresses", user?.id],
@@ -78,6 +98,75 @@ export function AddressStep({
     };
     update({ addressParts: parts, address: formatAddress(parts) });
     setCreating(false);
+    setResults(null);
+  }
+
+  function applyGeocoded(found: GeocodedAddress) {
+    setForm((current) => ({
+      ...current,
+      street: found.street || current.street,
+      number: found.number || current.number,
+      neighborhood: found.neighborhood,
+      city: found.city,
+      state: found.state,
+      zip: found.zip,
+    }));
+    setResults(null);
+    setCreating(true);
+  }
+
+  async function useMyLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Seu navegador não permite usar a localização.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const found = await reverse({
+            data: { lat: position.coords.latitude, lng: position.coords.longitude },
+          });
+          if (!found) {
+            toast.error("Não conseguimos identificar o endereço. Digite abaixo.");
+            setCreating(true);
+            return;
+          }
+          applyGeocoded(found);
+          toast.success("Encontramos seu endereço — confira o número.");
+        } catch {
+          toast.error("Não conseguimos usar sua localização agora.");
+          setCreating(true);
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        setLocating(false);
+        toast.error("Permita o acesso à localização ou digite o endereço.");
+        setCreating(true);
+      },
+      { enableHighAccuracy: true, timeout: 12000 },
+    );
+  }
+
+  async function runSearch() {
+    const query = term.trim();
+    if (query.length < 4) {
+      toast.info("Digite a rua e o número.");
+      return;
+    }
+    setSearching(true);
+    try {
+      const found = await search({ data: { query } });
+      setResults(found);
+      if (found.length === 0) toast.info("Nenhum endereço encontrado. Você pode digitar manualmente.");
+    } catch {
+      toast.error("Busca indisponível agora. Você pode digitar manualmente.");
+      setCreating(true);
+    } finally {
+      setSearching(false);
+    }
   }
 
   const save = useMutation({
@@ -127,22 +216,11 @@ export function AddressStep({
   return (
     <section className="surface-card space-y-4 p-5">
       <div className="space-y-1">
-        <h1 className="font-display text-xl font-bold">📍 Onde será realizado o serviço?</h1>
+        <h1 className="font-display text-xl font-bold">📍 Onde será o serviço?</h1>
         <p className="text-sm text-muted-foreground">
-          Informe o endereço onde o profissional deverá realizar o serviço.
+          Use sua localização ou busque o endereço — a gente completa o resto.
         </p>
       </div>
-
-      {!user && (
-        <p className="rounded-xl bg-muted px-4 py-3 text-sm">
-          Entre na sua conta para usar endereços salvos — você também pode digitar um endereço
-          agora.
-        </p>
-      )}
-
-      {addresses.isLoading && (
-        <p className="text-sm text-muted-foreground">Carregando endereços...</p>
-      )}
 
       {list.length > 0 && !creating && (
         <div className="grid gap-2">
@@ -159,13 +237,17 @@ export function AddressStep({
                     : "border-border bg-card hover:bg-muted"
                 }`}
               >
-                <Home className="mt-0.5 h-4 w-4 shrink-0" />
+                {a.label.toLowerCase().includes("trabalho") ? (
+                  <Briefcase className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : (
+                  <Home className="mt-0.5 h-4 w-4 shrink-0" />
+                )}
                 <span className="min-w-0">
                   <span className="flex items-center gap-2 text-sm font-bold">
                     {a.label}
                     {a.is_default && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">
-                        <Star className="h-3 w-3" /> Endereço principal
+                        <Star className="h-3 w-3" /> Principal
                       </span>
                     )}
                   </span>
@@ -186,36 +268,106 @@ export function AddressStep({
         </div>
       )}
 
-      {!creating ? (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full font-bold"
-          onClick={() => setCreating(true)}
-        >
-          <Plus className="h-4 w-4" /> Adicionar novo endereço
-        </Button>
-      ) : (
-        <div className="space-y-3 rounded-xl border border-border p-4">
-          <Field label="Nome do endereço">
-            <Input
-              value={form.label}
-              onChange={(e) => setForm({ ...form, label: e.target.value })}
-              placeholder="Casa, Trabalho..."
-              aria-label="Nome do endereço"
-              maxLength={40}
-              className="h-11 rounded-xl"
-            />
-          </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="CEP">
+      {!creating && (
+        <div className="space-y-3">
+          <Button
+            type="button"
+            className="h-12 w-full font-extrabold"
+            disabled={locating}
+            onClick={() => void useMyLocation()}
+          >
+            {locating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Crosshair className="h-4 w-4" />
+            )}
+            Usar minha localização
+          </Button>
+
+          <div className="flex items-center gap-3 text-xs font-bold uppercase text-muted-foreground">
+            <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                value={form.zip}
-                onChange={(e) => setForm({ ...form, zip: e.target.value })}
-                placeholder="00000-000"
-                aria-label="CEP"
-                maxLength={9}
-                inputMode="numeric"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void runSearch();
+                }}
+                placeholder="Rua e número"
+                aria-label="Buscar endereço"
+                className="h-12 rounded-xl pl-9 text-base"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 font-bold"
+              disabled={searching}
+              onClick={() => void runSearch()}
+            >
+              {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+            </Button>
+          </div>
+
+          {results && results.length > 0 && (
+            <div className="grid gap-2">
+              {results.map((r, i) => (
+                <button
+                  key={`${r.formatted}-${i}`}
+                  type="button"
+                  onClick={() => applyGeocoded(r)}
+                  className="flex items-start gap-2 rounded-xl border border-border bg-card px-4 py-3 text-left text-sm font-semibold transition hover:bg-muted"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {r.formatted}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full font-bold"
+            onClick={() => setCreating(true)}
+          >
+            <Plus className="h-4 w-4" /> Digitar endereço manualmente
+          </Button>
+        </div>
+      )}
+
+      {creating && (
+        <div className="space-y-3 rounded-xl border border-border p-4">
+          <div className="flex flex-wrap gap-2">
+            {LABELS.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => setForm({ ...form, label: l.value })}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                  form.label === l.value
+                    ? "border-primary bg-accent text-accent-foreground"
+                    : "border-border bg-card hover:bg-muted"
+                }`}
+              >
+                {l.icon}
+                {l.value}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+            <Field label="Rua">
+              <Input
+                value={form.street}
+                onChange={(e) => setForm({ ...form, street: e.target.value })}
+                placeholder="Rua Exemplo"
+                aria-label="Rua"
+                maxLength={120}
                 className="h-11 rounded-xl"
               />
             </Field>
@@ -230,16 +382,7 @@ export function AddressStep({
               />
             </Field>
           </div>
-          <Field label="Rua">
-            <Input
-              value={form.street}
-              onChange={(e) => setForm({ ...form, street: e.target.value })}
-              placeholder="Rua Exemplo"
-              aria-label="Rua"
-              maxLength={120}
-              className="h-11 rounded-xl"
-            />
-          </Field>
+
           <Field label="Complemento (opcional)">
             <Input
               value={form.complement}
@@ -250,35 +393,57 @@ export function AddressStep({
               className="h-11 rounded-xl"
             />
           </Field>
-          <Field label="Bairro">
-            <Input
-              value={form.neighborhood}
-              onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
-              aria-label="Bairro"
-              maxLength={80}
-              className="h-11 rounded-xl"
-            />
-          </Field>
-          <div className="grid gap-3 sm:grid-cols-[1fr_100px]">
-            <Field label="Cidade">
-              <Input
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                aria-label="Cidade"
-                maxLength={80}
-                className="h-11 rounded-xl"
-              />
-            </Field>
-            <Field label="UF">
-              <Input
-                value={form.state}
-                onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase() })}
-                aria-label="Estado (UF)"
-                maxLength={2}
-                className="h-11 rounded-xl"
-              />
-            </Field>
-          </div>
+
+          <p className="rounded-xl bg-muted px-4 py-3 text-xs font-semibold text-muted-foreground">
+            {[form.neighborhood, [form.city, form.state].filter(Boolean).join("/"), form.zip]
+              .filter(Boolean)
+              .join(" · ") || "Bairro, cidade e CEP serão preenchidos automaticamente."}
+          </p>
+
+          <details className="text-xs">
+            <summary className="cursor-pointer font-bold text-muted-foreground">
+              Corrigir bairro, cidade, UF ou CEP
+            </summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Field label="Bairro">
+                <Input
+                  value={form.neighborhood}
+                  onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
+                  aria-label="Bairro"
+                  maxLength={80}
+                  className="h-11 rounded-xl"
+                />
+              </Field>
+              <Field label="CEP">
+                <Input
+                  value={form.zip}
+                  onChange={(e) => setForm({ ...form, zip: e.target.value })}
+                  aria-label="CEP"
+                  maxLength={9}
+                  inputMode="numeric"
+                  className="h-11 rounded-xl"
+                />
+              </Field>
+              <Field label="Cidade">
+                <Input
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  aria-label="Cidade"
+                  maxLength={80}
+                  className="h-11 rounded-xl"
+                />
+              </Field>
+              <Field label="UF">
+                <Input
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase() })}
+                  aria-label="Estado (UF)"
+                  maxLength={2}
+                  className="h-11 rounded-xl"
+                />
+              </Field>
+            </div>
+          </details>
 
           {user && (
             <label className="flex items-center gap-2 text-sm font-semibold">
@@ -288,23 +453,21 @@ export function AddressStep({
                 onChange={(e) => setForm({ ...form, is_default: e.target.checked })}
                 className="h-4 w-4 accent-[hsl(var(--primary))]"
               />
-              Definir como endereço principal
+              Usar como endereço principal
             </label>
           )}
 
           {formError && <p className="text-sm text-muted-foreground">{formError}</p>}
 
           <div className="flex gap-2">
-            {list.length > 0 && (
-              <Button
-                type="button"
-                variant="ghost"
-                className="font-bold"
-                onClick={() => setCreating(false)}
-              >
-                Cancelar
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              className="font-bold"
+              onClick={() => setCreating(false)}
+            >
+              Voltar
+            </Button>
             <Button
               type="button"
               className="flex-1 font-extrabold"
@@ -329,7 +492,7 @@ export function AddressStep({
                 save.mutate();
               }}
             >
-              {save.isPending ? "Salvando..." : "Usar este endereço"}
+              {save.isPending ? "Salvando..." : "Confirmar endereço"}
             </Button>
           </div>
         </div>
