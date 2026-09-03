@@ -51,6 +51,9 @@ export type QuoteWithProvider = Quote & {
     reviews_count: number;
     distance_km: number | null;
     verified: boolean;
+    jobs_done: number | null;
+    available_now: boolean | null;
+    city: string | null;
   } | null;
 };
 
@@ -61,7 +64,7 @@ export const quotesWithProvidersQuery = (requestId: string) => ({
     const { data, error } = await supabase
       .from("quotes")
       .select(
-        "*, providers(id, name, avatar_url, rating, reviews_count, distance_km, verified)",
+        "*, providers(id, name, avatar_url, rating, reviews_count, distance_km, verified, jobs_done, available_now, city)",
       )
       .eq("request_id", requestId)
       .order("amount");

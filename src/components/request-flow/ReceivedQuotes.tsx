@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { BadgeCheck, Clock, MapPin, MessageSquare } from "lucide-react";
+import { BadgeCheck, Check, Clock, MapPin, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Stars } from "@/components/fixnow-ui";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/fixnow";
 import { quotesWithProvidersQuery, type QuoteWithProvider } from "@/lib/collab";
 
+/** Converte "1h30", "2 horas", "45 min" em minutos para comparar prazos. */
+function estimatedMinutes(text: string | null): number | null {
+  if (!text) return null;
+  const value = text.toLowerCase();
+  const hours = value.match(/(\d+)\s*h/);
+  const minutes = value.match(/(\d+)\s*m/);
+  if (!hours && !minutes) {
+    const days = value.match(/(\d+)\s*dia/);
+    return days?.[1] ? Number(days[1]) * 24 * 60 : null;
+  }
+  return (hours?.[1] ? Number(hours[1]) * 60 : 0) + (minutes?.[1] ? Number(minutes[1]) : 0);
+}
+
 export function ReceivedQuotes({
   requestId,
   chosenProviderId,
@@ -30,7 +43,32 @@ export function ReceivedQuotes({
 
   const list = quotes.data ?? [];
   const accepted = list.find((q) => q.status === "accepted") ?? null;
-  const pending = list.filter((q) => q.status === "sent" || q.status === "pending");
+  const pending = useMemo(
+    () => list.filter((q) => q.status === "sent" || q.status === "pending"),
+    [list],
+  );
+
+  /** Destaques: menor preço, melhor avaliação e prazo mais curto. */
+  const highlights = useMemo(() => {
+    if (pending.length < 2) return {} as Record<string, string[]>;
+    const map: Record<string, string[]> = {};
+    const add = (id: string | undefined, label: string) => {
+      if (!id) return;
+      map[id] = [...(map[id] ?? []), label];
+    };
+    const cheapest = [...pending].sort((a, b) => Number(a.amount) - Number(b.amount))[0];
+    add(cheapest?.id, "💰 Menor preço");
+    const best = [...pending].sort(
+      (a, b) => Number(b.providers?.rating ?? 0) - Number(a.providers?.rating ?? 0),
+    )[0];
+    add(best?.id, "🏆 Melhor avaliação");
+    const withTime = pending
+      .map((q) => ({ q, minutes: estimatedMinutes(q.estimated_time) }))
+      .filter((item): item is { q: QuoteWithProvider; minutes: number } => item.minutes !== null)
+      .sort((a, b) => a.minutes - b.minutes);
+    add(withTime[0]?.q.id, "⚡ Mais rápido");
+    return map;
+  }, [pending]);
 
   const choose = useMutation({
     mutationFn: async (quoteId: string) => {
@@ -96,79 +134,121 @@ export function ReceivedQuotes({
   return (
     <section className="surface-card space-y-3 p-5">
       <div>
-        <h2 className="font-display text-base font-bold">Orçamentos recebidos</h2>
+        <h2 className="font-display text-base font-bold">
+          {pending.length > 0 ? `${pending.length} orçamentos recebidos` : "Orçamentos recebidos"}
+        </h2>
         <p className="text-sm text-muted-foreground">
           {pending.length === 0
-            ? "Estamos aguardando os profissionais. Assim que recebermos um orçamento, ele aparecerá aqui."
-            : "Compare os profissionais e escolha o que melhor atende você."}
+            ? "Estamos aguardando os profissionais. Assim que chegar um orçamento, ele aparece aqui — avisaremos você."
+            : "Compare e escolha quem melhor atende você. A decisão é sempre sua."}
         </p>
       </div>
 
       <ul className="space-y-3">
-        {pending.map((q) => (
-          <li key={q.id} className="rounded-2xl border border-border p-4">
-            <div className="flex items-start gap-3">
-              <Avatar quote={q} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <p className="truncate font-display font-extrabold">
-                    {q.providers?.name ?? "Profissional"}
-                  </p>
-                  {q.providers?.verified && (
-                    <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="Verificado" />
-                  )}
-                </div>
-                {q.providers && (
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Stars value={Number(q.providers.rating)} />
-                      {Number(q.providers.rating).toFixed(1)} ({q.providers.reviews_count})
+        {pending.map((q) => {
+          const badges = highlights[q.id] ?? [];
+          const reasons = [
+            q.providers?.distance_km != null ? "Atende sua região" : null,
+            q.providers?.available_now ? "Disponível no horário solicitado" : null,
+            "Especialista neste serviço",
+            q.providers?.verified ? "Profissional verificado" : null,
+          ].filter((r): r is string => !!r);
+
+          return (
+            <li key={q.id} className="rounded-2xl border border-border p-4">
+              {badges.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {badges.map((b) => (
+                    <span
+                      key={b}
+                      className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-extrabold text-primary"
+                    >
+                      {b}
                     </span>
-                    {q.providers.distance_km != null && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {Number(q.providers.distance_km).toFixed(1)} km
-                      </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-start gap-3">
+                <Avatar quote={q} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate font-display font-extrabold">
+                      {q.providers?.name ?? "Profissional"}
+                    </p>
+                    {q.providers?.verified && (
+                      <BadgeCheck
+                        className="h-4 w-4 shrink-0 text-primary"
+                        aria-label="Verificado"
+                      />
                     )}
                   </div>
-                )}
+                  {q.providers && (
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Stars value={Number(q.providers.rating)} />
+                        {Number(q.providers.rating).toFixed(1)}
+                        {q.providers.jobs_done
+                          ? ` · ${q.providers.jobs_done} serviços`
+                          : ` (${q.providers.reviews_count})`}
+                      </span>
+                      {q.providers.distance_km != null && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {Number(q.providers.distance_km).toFixed(1)} km
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <p className="shrink-0 font-display text-lg font-extrabold text-primary">
+                  {brl(Number(q.amount))}
+                </p>
               </div>
-              <p className="shrink-0 font-display text-lg font-extrabold text-primary">
-                {brl(Number(q.amount))}
-              </p>
-            </div>
 
-            {q.estimated_time && (
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" /> Prazo: {q.estimated_time}
-              </p>
-            )}
-            {q.message && (
-              <p className="mt-1 flex items-start gap-1.5 text-sm">
-                <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <span>{q.message}</span>
-              </p>
-            )}
-
-            <div className="mt-3 flex gap-2">
-              {q.providers?.id && (
-                <Button asChild size="sm" variant="outline" className="font-bold">
-                  <Link to="/prestador/$id" params={{ id: q.providers.id }}>
-                    Ver profissional
-                  </Link>
-                </Button>
+              {q.estimated_time && (
+                <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" /> Prazo: {q.estimated_time}
+                </p>
               )}
-              <Button
-                size="sm"
-                className="flex-1 font-extrabold"
-                disabled={choose.isPending}
-                onClick={() => setSelected(q)}
-              >
-                Escolher este profissional
-              </Button>
-            </div>
-          </li>
-        ))}
+              {q.message && (
+                <p className="mt-1 flex items-start gap-1.5 text-sm">
+                  <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>“{q.message}”</span>
+                </p>
+              )}
+
+              <ul className="mt-3 grid gap-1 rounded-xl bg-muted px-3 py-2 sm:grid-cols-2">
+                {reasons.map((r) => (
+                  <li
+                    key={r}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"
+                  >
+                    <Check className="h-3.5 w-3.5 text-success" /> {r}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-3 flex gap-2">
+                {q.providers?.id && (
+                  <Button asChild size="sm" variant="outline" className="font-bold">
+                    <Link to="/prestador/$id" params={{ id: q.providers.id }}>
+                      Ver detalhes
+                    </Link>
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  className="flex-1 font-extrabold"
+                  disabled={choose.isPending}
+                  onClick={() => setSelected(q)}
+                >
+                  Escolher este profissional
+                </Button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
