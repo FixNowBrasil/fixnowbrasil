@@ -1,21 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Loader2, SearchX, Users } from "lucide-react";
+import { BellRing, CalendarCheck, Check, Clock3, Loader2, SearchX, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { draftScheduledAt, type RequestDraft } from "@/lib/request-draft";
 
 type MatchResult = { request_id: string | null; invited: number };
 
+const PROGRESS = [
+  "Analisando seu serviço",
+  "Verificando profissionais na região",
+  "Conferindo disponibilidade",
+  "Encontrando as melhores opções",
+];
+
 /**
- * PARTE 4: cria a solicitação e convida até 5 profissionais compatíveis.
+ * PARTE 5: cria a solicitação e convida até 5 profissionais compatíveis.
  * Todo o matching e a criação acontecem na função `create_request_with_matching`
  * (SECURITY DEFINER, valida `auth.uid()`): o frontend não escolhe profissionais.
  */
 export function MatchingStep({ draft, onRetry }: { draft: RequestDraft; onRetry: () => void }) {
   const [state, setState] = useState<"loading" | "done" | "error">("loading");
   const [result, setResult] = useState<MatchResult | null>(null);
+  const [progress, setProgress] = useState(0);
   const started = useRef(false);
+
+  // Animação de progresso: avança até a última etapa enquanto o matching roda.
+  useEffect(() => {
+    if (state !== "loading") return;
+    const timer = setInterval(
+      () => setProgress((current) => Math.min(current + 1, PROGRESS.length - 1)),
+      900,
+    );
+    return () => clearInterval(timer);
+  }, [state]);
 
   useEffect(() => {
     if (started.current) return;
@@ -40,18 +58,36 @@ export function MatchingStep({ draft, onRetry }: { draft: RequestDraft; onRetry:
         return;
       }
       setResult(data as unknown as MatchResult);
+      setProgress(PROGRESS.length);
       setState("done");
     })();
   }, [draft]);
 
   if (state === "loading") {
     return (
-      <section className="surface-card flex flex-col items-center gap-3 p-8 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <h1 className="font-display text-xl font-bold">Encontrando profissionais para você...</h1>
-        <p className="text-sm text-muted-foreground">
-          Estamos procurando profissionais que atendam ao seu serviço e à sua localização.
-        </p>
+      <section className="surface-card space-y-4 p-8 text-center">
+        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+        <h1 className="font-display text-xl font-bold">🔎 Procurando profissionais...</h1>
+        <ul className="mx-auto max-w-sm space-y-2 text-left">
+          {PROGRESS.map((label, i) => {
+            const done = i < progress;
+            return (
+              <li
+                key={label}
+                className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                  done ? "bg-muted" : "opacity-60"
+                }`}
+              >
+                {done ? (
+                  <Check className="h-4 w-4 text-primary" />
+                ) : (
+                  <Clock3 className="h-4 w-4 animate-pulse text-muted-foreground" />
+                )}
+                {label}
+              </li>
+            );
+          })}
+        </ul>
       </section>
     );
   }
@@ -88,21 +124,44 @@ export function MatchingStep({ draft, onRetry }: { draft: RequestDraft; onRetry:
   }
 
   return (
-    <section className="surface-card space-y-3 p-6 text-center">
-      <Users className="mx-auto h-8 w-8 text-primary" />
-      <h1 className="font-display text-xl font-bold">Encontramos profissionais para você!</h1>
+    <section className="surface-card space-y-4 p-6 text-center">
+      <p className="text-4xl" aria-hidden>
+        🎉
+      </p>
+      <h1 className="font-display text-xl font-bold">Solicitação enviada!</h1>
       <p className="text-sm font-semibold">
-        Encontramos {result.invited}{" "}
-        {result.invited === 1 ? "profissional compatível" : "profissionais compatíveis"}.
+        {result.invited}{" "}
+        {result.invited === 1
+          ? "profissional compatível foi encontrado"
+          : "profissionais compatíveis foram encontrados"}
+        .
       </p>
-      <p className="text-sm text-muted-foreground">
-        Eles já receberam sua solicitação e podem enviar um orçamento.
+
+      <ul className="mx-auto max-w-sm space-y-2 text-left">
+        <Item icon={<Wallet className="h-4 w-4" />} label="Orçamento" />
+        <Item icon={<Clock3 className="h-4 w-4" />} label="Prazo estimado" />
+        <Item icon={<CalendarCheck className="h-4 w-4" />} label="Disponibilidade" />
+      </ul>
+
+      <p className="flex items-center justify-center gap-2 rounded-xl bg-muted px-4 py-3 text-sm font-semibold">
+        <BellRing className="h-4 w-4 text-primary" />
+        Você não precisa fazer mais nada agora — avisaremos quando chegar um orçamento.
       </p>
+
       <Button asChild className="w-full font-extrabold">
         <Link to="/pedidos/$id" params={{ id: result.request_id }}>
-          Acompanhar solicitação
+          Ver minha solicitação
         </Link>
       </Button>
     </section>
+  );
+}
+
+function Item({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <li className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-semibold">
+      <span className="text-primary">{icon}</span>
+      {label}
+    </li>
   );
 }
