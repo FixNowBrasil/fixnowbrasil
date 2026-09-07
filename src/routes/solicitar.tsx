@@ -142,28 +142,30 @@ function SolicitarPage() {
           <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
-        {step === 3 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
+        {step === 3 && <ReviewStep draft={draft} onEdit={(target) => setStep(target)} />}
 
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            className="font-bold"
-            onClick={() => (step === 0 ? navigate({ to: "/" }) : setStep(step - 1))}
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
-          {step < 3 && (
+        {step === 4 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
+
+        {step < 4 && (
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              className="font-bold"
+              onClick={() => (step === 0 ? navigate({ to: "/" }) : setStep(step - 1))}
+            >
+              <ArrowLeft className="h-4 w-4" /> Voltar
+            </Button>
             <Button
               size="lg"
               className="font-extrabold"
-              disabled={step > 0 && !canAdvance}
+              disabled={step > 0 && step < 3 && !canAdvance}
               onClick={handleContinue}
             >
-              {step === 2 ? "Encontrar profissionais" : "Continuar"}
+              {step === 3 ? "Encontrar profissionais" : "Continuar"}
               <ArrowRight className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
