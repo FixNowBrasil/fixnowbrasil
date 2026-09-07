@@ -37,7 +37,7 @@ export const Route = createFileRoute("/solicitar")({
   component: SolicitarPage,
 });
 
-const STEPS = ["O problema", "Endereço", "Quando", "Profissionais"];
+const STEPS = ["O que você precisa?", "Onde?", "Quando?", "Confirmar", "Pronto!"];
 
 function SolicitarPage() {
   const search = Route.useSearch();
