@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { AddressStep } from "@/components/request-flow/AddressStep";
 import { MatchingStep } from "@/components/request-flow/MatchingStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
+import { ReviewStep } from "@/components/request-flow/ReviewStep";
 import { WhenStep } from "@/components/request-flow/WhenStep";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/solicitar")({
   component: SolicitarPage,
 });
 
-const STEPS = ["O problema", "Endereço", "Quando", "Profissionais"];
+const STEPS = ["O que você precisa?", "Onde?", "Quando?", "Confirmar", "Pronto!"];
 
 function SolicitarPage() {
   const search = Route.useSearch();
@@ -91,12 +92,12 @@ function SolicitarPage() {
       toast.error("Escolha ou cadastre um endereço para continuar.");
       return;
     }
-    if (step === 2) {
-      if (whenError) {
-        setShowWhenError(true);
-        toast.error(whenError);
-        return;
-      }
+    if (step === 2 && whenError) {
+      setShowWhenError(true);
+      toast.error(whenError);
+      return;
+    }
+    if (step === 3) {
       if (!user) {
         toast.info("Entre na sua conta para concluir a solicitação.");
         navigate({ to: "/auth" });
@@ -142,28 +143,30 @@ function SolicitarPage() {
           <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
-        {step === 3 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
+        {step === 3 && <ReviewStep draft={draft} onEdit={(target: number) => setStep(target)} />}
 
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="ghost"
-            className="font-bold"
-            onClick={() => (step === 0 ? navigate({ to: "/" }) : setStep(step - 1))}
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
-          {step < 3 && (
+        {step === 4 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
+
+        {step < 4 && (
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              className="font-bold"
+              onClick={() => (step === 0 ? navigate({ to: "/" }) : setStep(step - 1))}
+            >
+              <ArrowLeft className="h-4 w-4" /> Voltar
+            </Button>
             <Button
               size="lg"
               className="font-extrabold"
-              disabled={step > 0 && !canAdvance}
+              disabled={step > 0 && step < 3 && !canAdvance}
               onClick={handleContinue}
             >
-              {step === 2 ? "Encontrar profissionais" : "Continuar"}
+              {step === 3 ? "Encontrar profissionais" : "Continuar"}
               <ArrowRight className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
