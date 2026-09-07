@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { AddressStep } from "@/components/request-flow/AddressStep";
 import { MatchingStep } from "@/components/request-flow/MatchingStep";
 import { ProblemStep } from "@/components/request-flow/ProblemStep";
+import { ReviewStep } from "@/components/request-flow/ReviewStep";
 import { WhenStep } from "@/components/request-flow/WhenStep";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -91,12 +92,12 @@ function SolicitarPage() {
       toast.error("Escolha ou cadastre um endereço para continuar.");
       return;
     }
-    if (step === 2) {
-      if (whenError) {
-        setShowWhenError(true);
-        toast.error(whenError);
-        return;
-      }
+    if (step === 2 && whenError) {
+      setShowWhenError(true);
+      toast.error(whenError);
+      return;
+    }
+    if (step === 3) {
       if (!user) {
         toast.info("Entre na sua conta para concluir a solicitação.");
         navigate({ to: "/auth" });
@@ -142,7 +143,7 @@ function SolicitarPage() {
           <WhenStep draft={draft} update={update} error={whenError} showError={showWhenError} />
         )}
 
-        {step === 3 && <ReviewStep draft={draft} onEdit={(target) => setStep(target)} />}
+        {step === 3 && <ReviewStep draft={draft} onEdit={(target: number) => setStep(target)} />}
 
         {step === 4 && <MatchingStep draft={draft} onRetry={() => setStep(0)} />}
 
